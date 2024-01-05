@@ -4,18 +4,19 @@ using TrakHound.Serialization;
 
 namespace SHARC.TrakHound
 {
+    [TrakHoundObject(DefinitionId = "SHARC.Sensor")]
     public class TrakHoundSharcSensorConfigurationModel
     {
         [JsonPropertyName("aggregate")]
-        [TrakHoundBoolean("aggregate")]
+        [TrakHoundBoolean("aggregate", DefinitionId = "SHARC.Sensor.Aggregate")]
         public bool Aggregate { get; set; }
 
         [JsonPropertyName("calibrate")]
-        [TrakHoundBoolean("calibrate")]
+        [TrakHoundBoolean("calibrate", DefinitionId = "SHARC.Sensor.Calibrate")]
         public bool Calibrate { get; set; }
 
         [JsonPropertyName("convert")]
-        [TrakHoundBoolean("convert")]
+        [TrakHoundBoolean("convert", DefinitionId = "SHARC.Sensor.Convert")]
         public bool Convert { get; set; }
 
         [JsonPropertyName("s0")]

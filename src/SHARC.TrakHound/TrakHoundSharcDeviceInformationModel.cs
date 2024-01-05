@@ -4,30 +4,31 @@ using TrakHound.Serialization;
 
 namespace SHARC.TrakHound
 {
+    [TrakHoundObject(DefinitionId = "SHARC.DeviceInformation")]
     public class TrakHoundSharcDeviceInformationModel
     {
         [JsonPropertyName("mfg")]
-        [TrakHoundString("mfg")]
+        [TrakHoundString("mfg", DefinitionId = "SHARC.DeviceInformation.Manufacturer")]
         public string Manufacturer { get; set; }
 
         [JsonPropertyName("model")]
-        [TrakHoundString("model")]
+        [TrakHoundString("model", DefinitionId = "SHARC.DeviceInformation.Model")]
         public string Model { get; set; }
 
         [JsonPropertyName("serial")]
-        [TrakHoundString("serial")]
+        [TrakHoundString("serial", DefinitionId = "SHARC.DeviceInformation.Serial")]
         public string Serial { get; set; }
 
         [JsonPropertyName("hw")]
-        [TrakHoundString("hw")]
+        [TrakHoundString("hw", DefinitionId = "SHARC.DeviceInformation.HardwareVersion")]
         public string HardwareVersion { get; set; }
 
         [JsonPropertyName("fw")]
-        [TrakHoundString("fw")]
+        [TrakHoundString("fw", DefinitionId = "SHARC.DeviceInformation.FirmwareVersion")]
         public string FirmwareVersion { get; set; }
 
         [JsonPropertyName("sw")]
-        [TrakHoundString("sw")]
+        [TrakHoundString("sw", DefinitionId = "SHARC.DeviceInformation.SoftwareVersion")]
         public string SoftwareVersion { get; set; }
 
 

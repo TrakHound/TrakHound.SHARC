@@ -10,11 +10,13 @@ namespace SHARC
     public class Service : TrakHoundService
     {
         private readonly SharcMqttClient _sharcClient;
+        private bool _availability;
 
 
         public Service(ITrakHoundServiceConfiguration configuration, ITrakHoundHostClient client) : base(configuration, client)
         {
             _sharcClient = new SharcMqttClient("mosquitto.spb.mtcup.org", 1884, "409151d72b34");
+            _sharcClient.AvailabilityReceived += AvailabilityReceivedReceived;
             _sharcClient.DeviceInformationReceived += DeviceInformationReceived;
             _sharcClient.MqttInformationReceived += MqttInformationReceived;
             _sharcClient.NetworkInterfaceReceived += NetworkInterfaceReceived;
@@ -27,6 +29,7 @@ namespace SHARC
         protected override void OnStart()
         {
             _sharcClient.Start();
+            _ = Task.Run(PublishDefinitions);
         }
 
         protected override void OnStop()
@@ -34,10 +37,29 @@ namespace SHARC
             _sharcClient.Stop();
         }
 
+
+        private async Task PublishDefinitions()
+        {
+            await Client.Entities.Definitions.Publish(TrakHoundSharcDefinitions.GetAll());
+        }
+
+
+        private async void AvailabilityReceivedReceived(string sharcId, SharcMqttEvent<bool> e)
+        {
+            _availability = e.Value;
+
+            var sharcModel = new TrakHoundSharcModel();
+            sharcModel.SharcId = sharcId;
+            sharcModel.Availability = _availability;
+
+            await Client.Publish(sharcModel, true);
+        }
+
         private async void DeviceInformationReceived(string sharcId, SharcMqttEvent<SharcDeviceInformation> e)
         {
             var sharcModel = new TrakHoundSharcModel();
             sharcModel.SharcId = sharcId;
+            sharcModel.Availability = _availability;
             sharcModel.ver = new TrakHoundSharcDeviceInformationModel(e.Value);
 
             await Client.Publish(sharcModel, true);
@@ -47,6 +69,7 @@ namespace SHARC
         {
             var sharcModel = new TrakHoundSharcModel();
             sharcModel.SharcId = sharcId;
+            sharcModel.Availability = _availability;
             sharcModel.mqtt = new TrakHoundSharcMqttInformationModel(e.Value);
 
             await Client.Publish(sharcModel, true);
@@ -56,6 +79,7 @@ namespace SHARC
         {
             var sharcModel = new TrakHoundSharcModel();
             sharcModel.SharcId = sharcId;
+            sharcModel.Availability = _availability;
             sharcModel.net = new TrakHoundSharcNetworkInterfaceModel(e.Value);
 
             await Client.Publish(sharcModel, true);
@@ -65,6 +89,7 @@ namespace SHARC
         {
             var sharcModel = new TrakHoundSharcModel();
             sharcModel.SharcId = sharcId;
+            sharcModel.Availability = _availability;
             sharcModel.rc = new TrakHoundSharcBootCounterModel(e.Value);
 
             await Client.Publish(sharcModel, true);
@@ -74,6 +99,7 @@ namespace SHARC
         {
             var sharcModel = new TrakHoundSharcModel();
             sharcModel.SharcId = sharcId;
+            sharcModel.Availability = _availability;
             sharcModel.sensor = new TrakHoundSharcSensorConfigurationModel(e.Value);
 
             await Client.Publish(sharcModel, true);
@@ -104,30 +130,5 @@ namespace SHARC
                 await Client.Entities.Publish(entities);
             }
         }
-
-        //private async void SharcClientAggregateCalibratedConvertedSensorValueReceived(string sharcId, SharcAggregateCalibratedConvertedSensorValue data)
-        //{
-        //    var valueObject = await Client.PublishObject($"sharc/{sharcId}/io", TrakHoundObjectContentType.Observation);
-        //    if (valueObject != null)
-        //    {
-        //        var entities = new List<ITrakHoundEntity>();
-
-        //        if (data.Value != null)
-        //        {
-        //            foreach (var value in data.Value)
-        //            {
-        //                if (value.Value != null)
-        //                {
-        //                    var datasetId = Guid.NewGuid().ToString();
-        //                    entities.Add(new TrakHoundObjectObservationEntity(valueObject.Uuid, datasetId, dataType: (int)TrakHoundObjectObservationDataType.DataSet));
-        //                    entities.Add(new TrakHoundObjectDatasetEntity(valueObject.Uuid, datasetId, "Value", value.Value.Value.ToString()));
-        //                    entities.Add(new TrakHoundObjectDatasetEntity(valueObject.Uuid, datasetId, "Units", value.Value.Units));
-        //                }
-        //            }
-        //        }
-
-        //        await Client.Entities.Publish(entities);
-        //    }
-        //}
     }
 }

@@ -3,12 +3,16 @@ using TrakHound.Serialization;
 
 namespace SHARC.TrakHound
 {
-    [TrakHoundObject(BasePath = "sharc")]
+    [TrakHoundObject(BasePath = "sharc", DefinitionId = "SHARC")]
     public class TrakHoundSharcModel
     {
         [JsonIgnore]
         [TrakHoundName]
         public string SharcId { get; set; }
+
+        [JsonPropertyName("avail")]
+        [TrakHoundBoolean("avail", DefinitionId = "SHARC.Availability")]
+        public bool Availability { get; set; }
 
         [TrakHoundObject]
         public TrakHoundSharcMqttInformationModel mqtt { get; set; }

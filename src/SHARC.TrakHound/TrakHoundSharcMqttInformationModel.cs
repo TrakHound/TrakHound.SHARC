@@ -2,25 +2,30 @@
 using System.Text.Json.Serialization;
 using TrakHound.Serialization;
 
-namespace SHARC.TrakHound
+namespace SHARC
 {
-    [TrakHoundObject(DefinitionId = "SHARC.MqttInformation")]
+    [TrakHoundObject]
+    [TrakHoundDefinition("SHARC.MqttInformation")]
     public class TrakHoundSharcMqttInformationModel
     {
         [JsonPropertyName("address")]
-        [TrakHoundString("address", DefinitionId = "SHARC.MqttInformation.Address")]
+        [TrakHoundString("address")]
+        [TrakHoundDefinition("SHARC.MqttInformation.Address")]
         public string Address { get; set; }
 
         [JsonPropertyName("port")]
-        [TrakHoundNumber("port", DefinitionId = "SHARC.MqttInformation.Port")]
+        [TrakHoundNumber(Name = "port")]
+        [TrakHoundDefinition("SHARC.MqttInformation.Port")]
         public int Port { get; set; }
 
         [JsonPropertyName("user")]
-        [TrakHoundString("user", DefinitionId = "SHARC.MqttInformation.User")]
+        [TrakHoundString("user")]
+        [TrakHoundDefinition("SHARC.MqttInformation.User")]
         public string User { get; set; }
 
         [JsonPropertyName("anonymous")]
-        [TrakHoundBoolean("anonymous", DefinitionId = "SHARC.MqttInformation.Anonymous")]
+        [TrakHoundBoolean("anonymous")]
+        [TrakHoundDefinition("SHARC.MqttInformation.Anonymous")]
         public bool Anonymous { get; set; }
 
 

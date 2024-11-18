@@ -1,0 +1,10 @@
+﻿{
+  "id": "SHARC.Collection.Service",
+  "category": "service",
+  "metadata": {
+    "publisher": "TrakHound Inc.",
+    "description": "Collect & Store data from SHARC sensors",
+    ".image": "https://www.trakhound.com/management/static/sharc-logo",
+    ".defaultVolumeId": "sharc.collection"
+  }
+}

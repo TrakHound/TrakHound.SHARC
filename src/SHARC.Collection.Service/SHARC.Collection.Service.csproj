@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="trakhound.package.publish.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="trakhound.package.publish.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\TrakHound\libraries\TrakHound.Common\TrakHound.Common.csproj" />
+	  <ProjectReference Include="..\SHARC.TrakHound\SHARC.TrakHound.csproj" />
+	</ItemGroup>
+
+</Project>

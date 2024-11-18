@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "TrakHound.SHARC.Collection.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:55241;http://localhost:55242"
+    }
+  }
+}

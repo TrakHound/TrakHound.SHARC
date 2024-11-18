@@ -1,0 +1,10 @@
+﻿{
+  "id": "SHARC.Api",
+  "category": "api",
+  "metadata": {
+    "publisher": "TrakHound Inc.",
+    "description": "Access Data from SHARC sensors",
+    ".image": "https://www.trakhound.com/management/static/sharc-logo",
+    ".defaultRoute": "sharc/api"
+  }
+}

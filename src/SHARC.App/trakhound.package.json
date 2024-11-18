@@ -1,0 +1,10 @@
+﻿{
+  "id": "SHARC.App",
+  "category": "app",
+  "metadata": {
+    "publisher": "TrakHound Inc.",
+    "description": "View & Manage SHARC sensors",
+    ".image": "https://www.trakhound.com/management/static/sharc-logo",
+    ".defaultRoute": "sharc"
+  }
+}

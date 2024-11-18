@@ -1,13 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<EnableDynamicLoading>true</EnableDynamicLoading>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\SHARC.TrakHound\SHARC.TrakHound.csproj" />
+		<PackageReference Include="TrakHound.Debug.AspNetCore" Version="0.1.2" />
+		<ProjectReference Include="..\SHARC.TrakHound\SHARC.TrakHound.csproj" />
 	</ItemGroup>
 
 </Project>

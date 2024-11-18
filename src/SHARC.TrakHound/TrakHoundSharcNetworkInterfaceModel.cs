@@ -2,49 +2,60 @@
 using System.Text.Json.Serialization;
 using TrakHound.Serialization;
 
-namespace SHARC.TrakHound
+namespace SHARC
 {
-    [TrakHoundObject(DefinitionId = "SHARC.NetworkInterface")]
+    [TrakHoundObject]
+    [TrakHoundDefinition("SHARC.NetworkInterface")]
     public class TrakHoundSharcNetworkInterfaceModel
     {
         [JsonPropertyName("type")]
-        [TrakHoundString("type", DefinitionId = "SHARC.NetworkInterface.Type")]
+        [TrakHoundString("type")]
+        [TrakHoundDefinition("SHARC.NetworkInterface.Type")]
         public string Type { get; set; }
 
         [JsonPropertyName("static")]
-        [TrakHoundBoolean("static", DefinitionId = "SHARC.NetworkInterface.Static")]
+        [TrakHoundBoolean("static")]
+        [TrakHoundDefinition("SHARC.NetworkInterface.Static")]
         public bool Static { get; set; }
 
         [JsonPropertyName("ip")]
-        [TrakHoundString("ip", DefinitionId = "SHARC.NetworkInterface.IpAddress")]
+        [TrakHoundString("ip")]
+        [TrakHoundDefinition("SHARC.NetworkInterface.IpAddress")]
         public string IpAddress { get; set; }
 
         [JsonPropertyName("gw")]
-        [TrakHoundString("gw", DefinitionId = "SHARC.NetworkInterface.Gateway")]
+        [TrakHoundString("gw")]
+        [TrakHoundDefinition("SHARC.NetworkInterface.Gateway")]
         public string Gateway { get; set; }
 
         [JsonPropertyName("mask")]
-        [TrakHoundString("mask", DefinitionId = "SHARC.NetworkInterface.SubnetMask")]
+        [TrakHoundString("mask")]
+        [TrakHoundDefinition("SHARC.NetworkInterface.SubnetMask")]
         public string SubnetMask { get; set; }
 
         [JsonPropertyName("dns")]
-        [TrakHoundString("dns", DefinitionId = "SHARC.NetworkInterface.DNS")]
+        [TrakHoundString("dns")]
+        [TrakHoundDefinition("SHARC.NetworkInterface.DNS")]
         public string DNS { get; set; }
 
         [JsonPropertyName("mac")]
-        [TrakHoundString("mac", DefinitionId = "SHARC.NetworkInterface.MacAddress")]
+        [TrakHoundString("mac")]
+        [TrakHoundDefinition("SHARC.NetworkInterface.MacAddress")]
         public string MacAddress { get; set; }
 
         [JsonPropertyName("quality")]
-        [TrakHoundNumber("quality", DefinitionId = "SHARC.NetworkInterface.Quality")]
+        [TrakHoundNumber(Name = "quality")]
+        [TrakHoundDefinition("SHARC.NetworkInterface.Quality")]
         public int Quality { get; set; }
 
         [JsonPropertyName("ssid")]
-        [TrakHoundString("ssid", DefinitionId = "SHARC.NetworkInterface.SSID")]
+        [TrakHoundString("ssid")]
+        [TrakHoundDefinition("SHARC.NetworkInterface.SSID")]
         public string SSID { get; set; }
 
         [JsonPropertyName("lan_fallback")]
-        [TrakHoundNumber("lan_fallback", DefinitionId = "SHARC.NetworkInterface.LanFallback")]
+        [TrakHoundNumber(Name = "lan_fallback")]
+        [TrakHoundDefinition("SHARC.NetworkInterface.LanFallback")]
         public int LanFallback { get; set; }
 
 

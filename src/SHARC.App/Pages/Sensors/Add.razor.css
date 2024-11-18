@@ -1,0 +1,172 @@
+﻿.page {
+    display: grid;
+    grid-template-rows: max-content max-content max-content 1fr;
+    height: 100%;
+    overflow: hidden;
+}
+
+.breadcrumb-panel {
+    grid-row: 1;
+}
+
+.nav-panel {
+    grid-row: 2;
+}
+
+.toolbar-panel {
+    grid-row: 3;
+}
+
+    .toolbar-panel .btn {
+        margin-right: 10px;
+    }
+
+    .toolbar-panel .btn-add {
+        width: 120px;
+    }
+
+    .toolbar-panel .btn-test {
+        width: 160px;
+    }
+
+    .toolbar-panel .message.error {
+        color: var(--colorRed);
+    }
+
+.content-panel {
+    grid-row: 4;
+    display: grid;
+    grid-template-columns: minmax(300px, 800px) 1fr;
+    height: 100%;
+    overflow: hidden;
+}
+
+.content-column-panel {
+    height: 100%;
+    overflow: hidden;
+    padding: 0;
+}
+
+.configuration-sections {
+    height: 100%;
+    overflow: auto;
+    padding: 20px 40px 50px;
+}
+
+.content-panel ::deep .text-box {
+    width: 100%;
+    min-width: 400px;
+    margin-bottom: 10px;
+    padding-bottom: 0;
+}
+
+    .content-panel ::deep .text-box input {
+        background: #fafafa;
+        font-size: 15px !important;
+        line-height: 36px !important;
+        height: 42px !important;
+        margin-bottom: 0;
+        padding-bottom: 0;
+        padding: 0 20px;
+    }
+
+.content-panel ::deep .spin-edit {
+    width: 220px;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+    .content-panel ::deep .spin-edit input {
+        background: #fafafa;
+        font-size: 16px !important;
+    }
+
+
+.content-panel ::deep .title {
+    font-weight: 500;
+}
+
+.content-panel ::deep #address input {
+    background: var(--accentVeryVeryLight) !important;
+    border-color: var(--accent);
+}
+
+.content-panel ::deep #address .subtitle {
+    color: var(--accent);
+}
+
+.content-panel ::deep #port input {
+    background: var(--accentVeryVeryLight) !important;
+    border-color: var(--accent);
+    border-right: 1px solid var(--accent) !important;
+}
+
+.content-panel ::deep #port .subtitle {
+    color: var(--accent);
+}
+
+.content-panel ::deep #device input {
+    background: var(--accentVeryVeryLight) !important;
+    border-color: var(--accent);
+}
+
+.content-panel ::deep #device .subtitle {
+    color: var(--accent);
+}
+
+
+
+.found-devices-header {
+    padding: 20px 30px 15px;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    grid-column-gap: 15px;
+}
+
+    .found-devices-header .found-devices-icon {
+        font-size: 16px;
+        color: #aaa;
+    }
+
+    .found-devices-header .found-devices-title {
+        font-size: 14px;
+        font-weight: bold;
+        color: #555;
+    }
+
+.found-devices-table {
+    height: 100%;
+    overflow: hidden;
+}
+
+    .found-devices-table ::deep .rz-data-grid {
+        height: 100%;
+    }
+
+        .found-devices-table ::deep .rz-data-grid td {
+            padding: 0;
+        }
+
+        .found-devices-table ::deep .rz-data-grid .rz-cell-data {
+            padding: 5px 10px;
+            font-size: 13px;
+        }
+
+        .found-devices-table ::deep .rz-data-grid .select-cell .rz-cell-data {
+            padding: 0;
+        }
+
+            .found-devices-table ::deep .rz-data-grid .select-cell .rz-cell-data .btn {
+                border: none;
+                border-radius: 0;
+                width: 100%;
+            }
+
+                .found-devices-table ::deep .rz-data-grid .select-cell .rz-cell-data .btn:hover {
+                    background: var(--accent);
+                    color: white;
+                }
+
+                    .found-devices-table ::deep .rz-data-grid .select-cell .rz-cell-data .btn:hover .icon {
+                        color: white;
+                    }

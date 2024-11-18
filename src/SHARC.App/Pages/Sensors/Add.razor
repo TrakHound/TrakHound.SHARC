@@ -1,0 +1,215 @@
+﻿@page "/sensors/add"
+@inherits TrakHoundComponentBase
+@layout Layout
+@using SHARC.Mqtt
+
+<PageTitle>SHARC - Add Sensor</PageTitle>
+
+<div class="page">
+
+    <div class="breadcrumb-panel">
+        <BreadcrumbLinks>
+            <BreadcrumbLink Display="Sensors" Link="@GetPath("/")"></BreadcrumbLink>
+            <BreadcrumbLink Display="Add"></BreadcrumbLink>
+        </BreadcrumbLinks>
+    </div>
+
+    <div class="toolbar-panel">
+
+        @if (!loading)
+        {
+            var addDisabled = !string.IsNullOrEmpty(server) && port > 0 && !string.IsNullOrEmpty(sharcId) ? "" : "disabled";
+
+            <button class="btn btn-primary btn-add @addDisabled" @onclick="AddClicked"><span class="icon fa-solid fa-sharp fa-plus"></span>Add</button>
+        }
+        else
+        {
+            <button class="btn btn-primary btn-search disabled"><span class="icon fa-solid fa-sharp fa-loader spin"></span>Adding..</button>
+        }
+
+        @if (!testConnectionLoading)
+        {
+            var testDisabled = string.IsNullOrEmpty(server) ? "disabled" : "";
+
+            <button class="btn btn-light btn-test @testDisabled" @onclick="TestConnection"><span class="icon fa-solid fa-sharp fa-signal-bars"></span>Test Connection</button>
+        }
+        else
+        {
+            <button class="btn btn-light btn-test disabled"><span class="icon fa-solid fa-sharp fa-loader spin"></span>Loading</button>
+        }
+
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <span class="message @messageClass"><span class="icon @messageIcon"></span>@message</span>
+        }
+
+    </div>
+
+    <div class="content-panel">
+        <div class="content-column-panel">
+            <div class="configuration-sections">
+
+                <div class="configuration-section-header">
+                    <span class="configuration-section-icon fa-solid fa-sharp fa-signal-bars"></span>
+                    <span class="configuration-section-title">Connection</span>
+                </div>
+                <div class="configuration-section-container">
+                    <div class="configuration-section">
+                        <TextBox Title="MQTT Server" SubTitle="(required)" @bind-Value="@server" Size="Size.Small" ElementId="address" InputName="mtconnect-connection-address" />
+                    </div>
+                    <div class="configuration-section-columns configuration-section">
+                        <div class="configuration-section-column">
+                            <SpinEdit Title="MQTT Port" SubTitle="(required)" @bind-Value="@port" Size="Size.Small" ElementId="port" />
+                        </div>
+                        <div class="configuration-section-column">
+                            <TextBox Title="SHARC ID" SubTitle="(required)" @bind-Value="@sharcId" Size="Size.Small" ElementId="device" InputName="mtconnect-connection-device-name" />
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="configuration-section-header">
+                    <span class="configuration-section-icon fa-solid fa-sharp fa-circle-info"></span>
+                    <span class="configuration-section-title">Description</span>
+                </div>
+                <div class="configuration-section-container">
+                    <div class="configuration-section">
+                        <TextBox Title="Base Path" SubTitle="(optional)" @bind-Value="@basePath" Size="Size.Small" InputName="mtconnect-connection-path" />
+                        <TextBox Title="Name" SubTitle="(optional)" @bind-Value="@name" Size="Size.Small" InputName="mtconnect-connection-name" />
+                        <TextBox Title="Description" SubTitle="(optional)" @bind-Value="@description" Size="Size.Small" InputName="mtconnect-connection-description" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="content-column-panel">
+
+            @if (!foundDevices.IsNullOrEmpty())
+            {
+                <div class="found-devices-header">
+                    <span class="found-devices-icon fa-solid fa-sharp fa-magnifying-glass"></span>
+                    <span class="found-devices-title">Found Sensors</span>
+                </div>
+                <div class="found-devices-table">
+                    <RadzenDataGrid Data="@foundDevices" GridLines="DataGridGridLines.Both">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="SharcDiscoveryModel" CssClass="buttons select-cell" Width="100px" Sortable="false">
+                                <Template Context="context">
+                                    <button class="btn btn-command btn-select" @onclick="() => Select(context)"><span class="icon fa-sharp fa-solid fa-caret-right"></span>Select</button>
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="SharcDiscoveryModel" Property="SharcId" Title="SharcId" />
+                        </Columns>
+                    </RadzenDataGrid>
+                </div>
+            }
+            
+        </div>
+    </div>
+
+</div>
+
+@code {
+
+    IEnumerable<SharcDiscoveryModel> foundDevices;
+
+    private bool loading;
+    private string message;
+    private string messageIcon;
+    private string messageClass;
+
+    private string server;
+    private int port = 1883;
+    private string sharcId;
+
+    private string basePath;
+    private string name;
+    private string description;
+
+    private bool testConnectionLoading;
+
+
+    private async void AddClicked()
+    {
+        if (!string.IsNullOrEmpty(server) && !string.IsNullOrEmpty(sharcId))
+        {
+            loading = true;
+            message = null;
+            messageIcon = null;
+            messageClass = null;
+            await InvokeAsync(StateHasChanged);
+
+            var parameters = new Dictionary<string, string>();
+            parameters.Add("server", server);
+            parameters.Add("port", port.ToString());
+            parameters.Add("basePath", basePath);
+            parameters.Add("name", name);
+            parameters.Add("description", description);
+
+            var publishResponse = await Client.Api.Publish($"sharc/collection/api/{sharcId}", parameters);
+            if (publishResponse.Success)
+            {
+                loading = false;
+                message = $"Sensor Added ({sharcId})";
+                messageIcon = "fa-solid fa-sharp fa-check";
+                messageClass = "success";
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                loading = false;
+                message = $"Failed to Add Sensor ({sharcId})";
+                messageIcon = "fa-solid fa-sharp fa-xmark";
+                messageClass = "error";
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    private async void TestConnection()
+    {
+        if (!string.IsNullOrEmpty(server))
+        {
+            testConnectionLoading = true;
+            message = null;
+            messageIcon = null;
+            messageClass = null;
+            await InvokeAsync(StateHasChanged);
+
+            var parameters = new Dictionary<string, string>();
+            parameters.Add("server", server);
+            parameters.Add("port", port.ToString());
+            parameters.Add("timeout", 5000.ToString());
+
+            foundDevices = await Client.Api.QueryJson<IEnumerable<SharcDiscoveryModel>>($"sharc/collection/api/discover", parameters);
+            foundDevices = foundDevices?.OrderBy(o => o.SharcId);
+
+            var authority = $"{server}:{port}";
+
+            if (!foundDevices.IsNullOrEmpty())
+            {
+                message = $"{foundDevices.Count()} Devices Found @ {authority}";
+                messageIcon = "fa-solid fa-sharp fa-check";
+            }
+            else
+            {
+                message = $"No Devices Found @ {authority}";
+                messageIcon = "fa-solid fa-sharp fa-ban";
+                messageClass = "error";
+            }
+
+            testConnectionLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async void Select(SharcDiscoveryModel model)
+    {
+        if (model != null)
+        {
+            sharcId = model.SharcId;
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+}

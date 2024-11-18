@@ -13,11 +13,17 @@ namespace SHARC.Mqtt
         private readonly MqttFactory _mqttFactory;
         private readonly IMqttClient _mqttClient;
         private readonly SharcMqttClientConfiguration _configuration;
+        private readonly string _sharcId;
 
         private CancellationTokenSource _stop;
         private SharcMqttConnectionStatus _connectionStatus;
         private long _lastResponse;
 
+
+        /// <summary>
+        /// Gets the SHARC ID
+        /// </summary>
+        public string SharcId => _sharcId;
 
         /// <summary>
         /// Gets the Client Configuration
@@ -37,110 +43,112 @@ namespace SHARC.Mqtt
         /// <summary>
         /// Raised when the connection to the MQTT broker is established
         /// </summary>
-        public event EventHandler Connected;
+        public event SharcMqttEventHandler<SharcMqttClient> Connected;
 
         /// <summary>
         /// Raised when the connection to the MQTT broker is disconnected 
         /// </summary>
-        public event EventHandler Disconnected;
+        public event SharcMqttEventHandler<SharcMqttClient> Disconnected;
 
         /// <summary>
         /// Raised when the status of the connection to the MQTT broker has changed
         /// </summary>
-        public event EventHandler<SharcMqttConnectionStatus> ConnectionStatusChanged;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcMqttConnectionStatus> ConnectionStatusChanged;
 
         /// <summary>
         /// Raised when an error occurs during connection to the MQTT broker
         /// </summary>
-        public event EventHandler<Exception> ConnectionError;
+        public event SharcMqttEventHandler<SharcMqttClient, Exception> ConnectionError;
 
         /// <summary>
         /// Raised when an Internal Error occurs
         /// </summary>
-        public event EventHandler<Exception> InternalError;
+        public event SharcMqttEventHandler<SharcMqttClient, Exception> InternalError;
 
         /// <summary>
         /// Raised when a Device is received
         /// </summary>
-        public event SharcMqttEventHandler<SharcMqttEvent<bool>> AvailabilityReceived;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcMqttEvent<bool>> AvailabilityReceived;
 
         /// <summary>
         /// Raised when an Observation is received
         /// </summary>
-        public event SharcMqttEventHandler<SharcMqttEvent<SharcBootCounter>> BootCounterReceived;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcMqttEvent<SharcBootCounter>> BootCounterReceived;
 
         /// <summary>
         /// Raised when an Asset is received
         /// </summary>
-        public event SharcMqttEventHandler<SharcMqttEvent<SharcNetworkInterface>> NetworkInterfaceReceived;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcMqttEvent<SharcNetworkInterface>> NetworkInterfaceReceived;
 
         /// <summary>
         /// Raised when an MTConnectDevices Document is received
         /// </summary>
-        public event SharcMqttEventHandler<SharcMqttEvent<SharcDeviceInformation>> DeviceInformationReceived;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcMqttEvent<SharcDeviceInformation>> DeviceInformationReceived;
 
         /// <summary>
         /// Raised when an MTConnectSreams Document is received from a Current Request
         /// </summary>
-        public event SharcMqttEventHandler<SharcMqttEvent<SharcMqttInformation>> MqttInformationReceived;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcMqttEvent<SharcMqttInformation>> MqttInformationReceived;
 
         /// <summary>
         /// Raised when an MTConnectSreams Document is received from the Samples Stream
         /// </summary>
-        public event SharcMqttEventHandler<SharcMqttEvent<SharcSensorConfiguration>> SensorConfigurationReceived;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcMqttEvent<SharcSensorConfiguration>> SensorConfigurationReceived;
 
         /// <summary>
         /// Raised when an MTConnectAssets Document is received
         /// </summary>
-        public event SharcMqttEventHandler<SharcAggregateSensorValue> AggregateSensorValueReceived;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcAggregateSensorValue> AggregateSensorValueReceived;
 
         /// <summary>
         /// Raised when an MTConnectAssets Document is received
         /// </summary>
-        public event SharcMqttEventHandler<SharcDistinctSensorValue> DistinctSensorValueReceived;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcDistinctSensorEvent> DistinctSensorValueReceived;
 
         /// <summary>
         /// Raised when an MTConnectAssets Document is received
         /// </summary>
-        public event SharcMqttEventHandler<SharcAggregateCalibratedConvertedSensorValue> AggregateCalibratedConvertedSensorValueReceived;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcAggregateCalibratedConvertedSensorValue> AggregateCalibratedConvertedSensorValueReceived;
 
         /// <summary>
         /// Raised when an MTConnectDevices Document is received
         /// </summary>
-        public event SharcMqttEventHandler<SharcMqttEvent<SharcUserData>> UserDataReceived;
+        public event SharcMqttEventHandler<SharcMqttClient, SharcMqttEvent<SharcUserData>> UserDataReceived;
 
         /// <summary>
         /// Raised when any Response from the Client is received
         /// </summary>
-        public event EventHandler ResponseReceived;
+        public event SharcMqttEventHandler<SharcMqttClient> ResponseReceived;
 
         /// <summary>
         /// Raised when the Client is Starting
         /// </summary>
-        public event EventHandler ClientStarting;
+        public event SharcMqttEventHandler<SharcMqttClient> ClientStarting;
 
         /// <summary>
         /// Raised when the Client is Started
         /// </summary>
-        public event EventHandler ClientStarted;
+        public event SharcMqttEventHandler<SharcMqttClient> ClientStarted;
 
         /// <summary>
         /// Raised when the Client is Stopping
         /// </summary>
-        public event EventHandler ClientStopping;
+        public event SharcMqttEventHandler<SharcMqttClient> ClientStopping;
 
         /// <summary>
         /// Raised when the Client is Stopeed
         /// </summary>
-        public event EventHandler ClientStopped;
+        public event SharcMqttEventHandler<SharcMqttClient> ClientStopped;
 
 
-        public SharcMqttClient(string server, int port = 1883, string sharcId = null)
+        public SharcMqttClient(string sharcId, string server, int port = 1883)
         {
+            _sharcId = sharcId;
+
             var configuration = new SharcMqttClientConfiguration();
+            configuration.SharcId = sharcId;
             configuration.Server = server;
             configuration.Port = port;
-            if (!string.IsNullOrEmpty(sharcId)) configuration.SharcIds = new string[] { sharcId };
             _configuration = configuration;
 
             _mqttFactory = new MqttFactory();
@@ -163,14 +171,14 @@ namespace SHARC.Mqtt
         {
             _stop = new CancellationTokenSource();
 
-            ClientStarting?.Invoke(this, new EventArgs());
+            ClientStarting?.Invoke(this);
 
             _ = Task.Run(Worker, _stop.Token);
         }
 
         public void Stop()
         {
-            ClientStopping?.Invoke(this, new EventArgs());
+            ClientStopping?.Invoke(this);
 
             if (_stop != null) _stop.Cancel();
         }
@@ -179,6 +187,19 @@ namespace SHARC.Mqtt
         {
             if (_mqttClient != null) _mqttClient.Dispose();
         }
+
+
+        //private Task ClientConnectedAsync(MqttClientConnectedEventArgs arg)
+        //{
+        //    Connected?.Invoke(this, arg);
+        //    return Task.CompletedTask;
+        //}
+
+        //private Task ClientDisconnectedAsync(MqttClientDisconnectedEventArgs arg)
+        //{
+        //    Disconnected?.Invoke(this, arg);
+        //    return Task.CompletedTask;
+        //}
 
 
         private async Task Worker()
@@ -248,18 +269,12 @@ namespace SHARC.Mqtt
                         // Connect to the MQTT Client
                         await _mqttClient.ConnectAsync(clientOptions);
 
+                        Connected?.Invoke(this);
 
-                        if (_configuration.SharcIds != null && _configuration.SharcIds.Count() > 0)
-                        {
-                            await Subscribe(_configuration.SharcIds);
-                        }
-                        else
-                        {
-                            await Subscribe();
-                        }
+                        // Subscribe to MQTT Topics
+                        await Subscribe();
 
-
-                        ClientStarted?.Invoke(this, new EventArgs());
+                        ClientStarted?.Invoke(this);
 
                         while (_mqttClient.IsConnected && !_stop.IsCancellationRequested)
                         {
@@ -270,6 +285,8 @@ namespace SHARC.Mqtt
                     {
                         if (ConnectionError != null) ConnectionError.Invoke(this, ex);
                     }
+
+                    Disconnected?.Invoke(this);
 
                     await Task.Delay(_configuration.RetryInterval, _stop.Token);
                 }
@@ -290,64 +307,61 @@ namespace SHARC.Mqtt
             catch { }
 
 
-            ClientStopped?.Invoke(this, new EventArgs());
+            ClientStopped?.Invoke(this);
         }
 
 
-        private async Task Subscribe(IEnumerable<string> sharcIds)
+        private async Task Subscribe()
         {
             var topicFilters = new List<MqttTopicFilter>();
 
-            foreach (var sharcId in sharcIds)
-            {
-                // Availability
-                var availabilityTopic = new MqttTopicFilter();
-                availabilityTopic.Topic = $"{_defaultTopicPrefix}/{sharcId}/evt/avail";
-                availabilityTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
-                topicFilters.Add(availabilityTopic);
+            // Availability
+            var availabilityTopic = new MqttTopicFilter();
+            availabilityTopic.Topic = $"{_defaultTopicPrefix}/{_sharcId}/evt/avail";
+            availabilityTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
+            topicFilters.Add(availabilityTopic);
 
-                // Boot Counter
-                var bootCounterTopic = new MqttTopicFilter();
-                bootCounterTopic.Topic = $"{_defaultTopicPrefix}/{sharcId}/evt/rc";
-                bootCounterTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
-                topicFilters.Add(bootCounterTopic);
+            // Boot Counter
+            var bootCounterTopic = new MqttTopicFilter();
+            bootCounterTopic.Topic = $"{_defaultTopicPrefix}/{_sharcId}/evt/rc";
+            bootCounterTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
+            topicFilters.Add(bootCounterTopic);
 
-                // Network Interface
-                var networkInterrfaceTopic = new MqttTopicFilter();
-                networkInterrfaceTopic.Topic = $"{_defaultTopicPrefix}/{sharcId}/evt/net";
-                networkInterrfaceTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
-                topicFilters.Add(networkInterrfaceTopic);
+            // Network Interface
+            var networkInterrfaceTopic = new MqttTopicFilter();
+            networkInterrfaceTopic.Topic = $"{_defaultTopicPrefix}/{_sharcId}/evt/net";
+            networkInterrfaceTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
+            topicFilters.Add(networkInterrfaceTopic);
 
-                // Device Information
-                var deviceInformationTopic = new MqttTopicFilter();
-                deviceInformationTopic.Topic = $"{_defaultTopicPrefix}/{sharcId}/evt/ver";
-                deviceInformationTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
-                topicFilters.Add(deviceInformationTopic);
+            // Device Information
+            var deviceInformationTopic = new MqttTopicFilter();
+            deviceInformationTopic.Topic = $"{_defaultTopicPrefix}/{_sharcId}/evt/ver";
+            deviceInformationTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
+            topicFilters.Add(deviceInformationTopic);
 
-                // MQTT Information
-                var mqttInformationTopic = new MqttTopicFilter();
-                mqttInformationTopic.Topic = $"{_defaultTopicPrefix}/{sharcId}/evt/mqtt";
-                mqttInformationTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
-                topicFilters.Add(mqttInformationTopic);
+            // MQTT Information
+            var mqttInformationTopic = new MqttTopicFilter();
+            mqttInformationTopic.Topic = $"{_defaultTopicPrefix}/{_sharcId}/evt/mqtt";
+            mqttInformationTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
+            topicFilters.Add(mqttInformationTopic);
 
-                // Sensor Configuration
-                var sensorConfigurationTopic = new MqttTopicFilter();
-                sensorConfigurationTopic.Topic = $"{_defaultTopicPrefix}/{sharcId}/evt/sensor";
-                sensorConfigurationTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
-                topicFilters.Add(sensorConfigurationTopic);
+            // Sensor Configuration
+            var sensorConfigurationTopic = new MqttTopicFilter();
+            sensorConfigurationTopic.Topic = $"{_defaultTopicPrefix}/{_sharcId}/evt/sensor";
+            sensorConfigurationTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
+            topicFilters.Add(sensorConfigurationTopic);
 
-                // Sensor Value
-                var sensorValueTopic = new MqttTopicFilter();
-                sensorValueTopic.Topic = $"{_defaultTopicPrefix}/{sharcId}/evt/io";
-                sensorValueTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
-                topicFilters.Add(sensorValueTopic);
+            // Sensor Value
+            var sensorValueTopic = new MqttTopicFilter();
+            sensorValueTopic.Topic = $"{_defaultTopicPrefix}/{_sharcId}/evt/io/#";
+            sensorValueTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
+            topicFilters.Add(sensorValueTopic);
 
-                // User Data
-                var userDataTopic = new MqttTopicFilter();
-                userDataTopic.Topic = $"{_defaultTopicPrefix}/{sharcId}/evt/user";
-                userDataTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
-                topicFilters.Add(userDataTopic);
-            }
+            // User Data
+            var userDataTopic = new MqttTopicFilter();
+            userDataTopic.Topic = $"{_defaultTopicPrefix}/{_sharcId}/evt/user";
+            userDataTopic.QualityOfServiceLevel = (MQTTnet.Protocol.MqttQualityOfServiceLevel)_configuration.QoS;
+            topicFilters.Add(userDataTopic);
 
             var subscribeOptions = new MqttClientSubscribeOptions();
             subscribeOptions.TopicFilters = topicFilters;
@@ -355,13 +369,7 @@ namespace SHARC.Mqtt
             await _mqttClient.SubscribeAsync(subscribeOptions, _stop.Token);
         }
 
-        private async Task Subscribe()
-        {
-
-        }
-
-
-        private async Task ProcessMessage(MqttApplicationMessageReceivedEventArgs args)
+        private Task ProcessMessage(MqttApplicationMessageReceivedEventArgs args)
         {
             if (args != null && args.ApplicationMessage != null && args.ApplicationMessage.Topic != null)
             {
@@ -379,37 +387,37 @@ namespace SHARC.Mqtt
                         // Availability
                         case "avail":
                             var availability = Json.Convert<SharcMqttEvent<bool>>(json);
-                            if (AvailabilityReceived != null && availability != null) AvailabilityReceived.Invoke(sharcId, availability);
+                            if (AvailabilityReceived != null && availability != null) AvailabilityReceived.Invoke(this, availability);
                             break;
 
                         // Boot Counter
                         case "rc":
                             var bootCounter = Json.Convert<SharcMqttEvent<SharcBootCounter>>(json);
-                            if (BootCounterReceived != null && bootCounter != null) BootCounterReceived.Invoke(sharcId, bootCounter);
+                            if (BootCounterReceived != null && bootCounter != null) BootCounterReceived.Invoke(this, bootCounter);
                             break;
 
                         // Network Interface
                         case "net":
                             var networkInterface = Json.Convert<SharcMqttEvent<SharcNetworkInterface>>(json);
-                            if (NetworkInterfaceReceived != null && networkInterface != null) NetworkInterfaceReceived.Invoke(sharcId, networkInterface);
+                            if (NetworkInterfaceReceived != null && networkInterface != null) NetworkInterfaceReceived.Invoke(this, networkInterface);
                             break;
 
                         // Device Information
                         case "ver":
                             var deviceInformation = Json.Convert<SharcMqttEvent<SharcDeviceInformation>>(json);
-                            if (DeviceInformationReceived != null && deviceInformation != null) DeviceInformationReceived.Invoke(sharcId, deviceInformation);
+                            if (DeviceInformationReceived != null && deviceInformation != null) DeviceInformationReceived.Invoke(this, deviceInformation);
                             break;
 
                         // MQTT Information
                         case "mqtt":
                             var mqttInformation = Json.Convert<SharcMqttEvent<SharcMqttInformation>>(json);
-                            if (MqttInformationReceived != null && mqttInformation != null) MqttInformationReceived.Invoke(sharcId, mqttInformation);
+                            if (MqttInformationReceived != null && mqttInformation != null) MqttInformationReceived.Invoke(this, mqttInformation);
                             break;
 
                         // Sensor Configuration
                         case "sensor":
                             var sensorConfiguration = Json.Convert<SharcMqttEvent<SharcSensorConfiguration>>(json);
-                            if (SensorConfigurationReceived != null && sensorConfiguration != null) SensorConfigurationReceived.Invoke(sharcId, sensorConfiguration);
+                            if (SensorConfigurationReceived != null && sensorConfiguration != null) SensorConfigurationReceived.Invoke(this, sensorConfiguration);
                             break;
 
                         // Sensor Value
@@ -418,22 +426,26 @@ namespace SHARC.Mqtt
                             var sensorName = GetTopicPart(topic, "io");
                             if (sensorName != null)
                             {
-                                var distinctSensorValue = Json.Convert<SharcDistinctSensorValue>(json);
-                                if (DistinctSensorValueReceived != null && distinctSensorValue != null) DistinctSensorValueReceived.Invoke(sharcId, distinctSensorValue);
+                                var distinctSensorValue = Json.Convert<SharcDistinctSensorEvent>(json);
+                                if (distinctSensorValue != null)
+                                {
+                                    distinctSensorValue.SensorName = sensorName;
+                                    if (DistinctSensorValueReceived != null) DistinctSensorValueReceived.Invoke(this, distinctSensorValue);
+                                }
                             }
                             else
                             {
                                 var aggregateSensorValue = Json.Convert<SharcAggregateSensorValue>(json);
                                 if (aggregateSensorValue != null)
                                 {
-                                    if (AggregateSensorValueReceived != null && aggregateSensorValue != null) AggregateSensorValueReceived.Invoke(sharcId, aggregateSensorValue);
+                                    if (AggregateSensorValueReceived != null && aggregateSensorValue != null) AggregateSensorValueReceived.Invoke(this, aggregateSensorValue);
                                 }
                                 else
                                 {
                                     var aggregateCCSensorValue = Json.Convert<SharcAggregateCalibratedConvertedSensorValue>(json);
                                     if (aggregateCCSensorValue != null)
                                     {
-                                        if (AggregateCalibratedConvertedSensorValueReceived != null && aggregateCCSensorValue != null) AggregateCalibratedConvertedSensorValueReceived.Invoke(sharcId, aggregateCCSensorValue);
+                                        if (AggregateCalibratedConvertedSensorValueReceived != null && aggregateCCSensorValue != null) AggregateCalibratedConvertedSensorValueReceived.Invoke(this, aggregateCCSensorValue);
                                     }
                                 }
                             }
@@ -442,18 +454,14 @@ namespace SHARC.Mqtt
                         // User Data
                         case "user":
                             var userData = Json.Convert<SharcMqttEvent<SharcUserData>>(json);
-                            if (UserDataReceived != null && userData != null) UserDataReceived.Invoke(sharcId, userData);
+                            if (UserDataReceived != null && userData != null) UserDataReceived.Invoke(this, userData);
                             break;
                     }
                 }
                 catch { }
             }
-        }
 
-
-        public async Task SendCommand()
-        {
-
+            return Task.CompletedTask;
         }
 
 
@@ -499,7 +507,10 @@ namespace SHARC.Mqtt
 
                 if (e > 0 && e < topic.Length - 1) 
                 {
-                    return topic.Substring(e + 1);
+                    s = topic.IndexOf('/', e + 1);
+
+                    if (s > 0) return topic.Substring(e + 1, s - e - 1);
+                    else return topic.Substring(e + 1);
                 }
             }
 

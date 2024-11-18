@@ -2,24 +2,28 @@
 using System.Text.Json.Serialization;
 using TrakHound.Serialization;
 
-namespace SHARC.TrakHound
+namespace SHARC
 {
     public class TrakHoundSharcSensorValueConfigurationModel
     {
         [JsonPropertyName("deadband")]
-        [TrakHoundNumber("deadband", DefinitionId = "SHARC.SensorValue.Deadband")]
+        [TrakHoundNumber(Name = "deadband")]
+        [TrakHoundDefinition("SHARC.SensorValue.Deadband")]
         public int Deadband { get; set; }
 
         [JsonPropertyName("calibrate")]
-        [TrakHoundString("calibrate", DefinitionId = "SHARC.SensorValue.Calibrate")]
+        [TrakHoundString("calibrate")]
+        [TrakHoundDefinition("SHARC.SensorValue.Calibrate")]
         public string Calibrate { get; set; }
 
         [JsonPropertyName("calibrated_range")]
-        [TrakHoundSet("calibrated_range", DefinitionId = "SHARC.SensorValue.CalibratedRange")]
+        [TrakHoundSet("calibrated_range")]
+        [TrakHoundDefinition("SHARC.SensorValue.CalibratedRange")]
         public IEnumerable<int> CalibratedRange { get; set; }
 
         [JsonPropertyName("convert")]
-        [TrakHoundString("convert", DefinitionId = "SHARC.SensorValue.Convert")]
+        [TrakHoundString("convert")]
+        [TrakHoundDefinition("SHARC.SensorValue.Convert")]
         public string Convert { get; set; }
 
 

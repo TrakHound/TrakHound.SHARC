@@ -1,0 +1,384 @@
+﻿@page "/"
+@inherits TrakHoundComponentBase
+@implements IDisposable
+@layout Layout
+@using TrakHound
+@using TrakHound.Serialization
+
+<TrakHoundPageTitle>SHARC</TrakHoundPageTitle>
+
+<div class="page">
+
+@*     <div class="breadcrumb-panel">
+        <BreadcrumbLinks>
+            <BreadcrumbLink Display="Configuration" Link="@GetPath("/")"></BreadcrumbLink>
+            <BreadcrumbLink Display="Sensors"></BreadcrumbLink>
+        </BreadcrumbLinks>
+    </div> *@
+
+@*     <div class="nav-panel tab-buttons">
+        <div class="tab-button active"><span class="icon fa-solid fa-sharp fa-signal-bars"></span>Sensors</div>
+        <a href="@GetPath("configuration")" class="tab-button"><span class="icon fa-solid fa-sharp fa-gear"></span>Configuration</a>
+    </div> *@
+
+    @if (!loading)
+    {
+        <div class="toolbar-panel">
+            <div class="toolbar-panel-left">
+                <a class="btn btn-primary btn-add" href="@GetPath("sensors/add")"><span class="icon fa-solid fa-sharp fa-plus"></span>Add Sensor</a>
+                <button class="btn btn-light btn-refresh" @onclick="RefreshClicked"><span class="icon fa-solid fa-sharp fa-rotate"></span></button>
+            </div>
+            <div class="toolbar-panel-center">
+                <TextBox Class="filter-input" PlaceHolder="Filter Sensors.." Value="@filter" ValueChanged="FilterChanged" InputChangeType="InputChangeType.OnValueChange" />
+            </div>
+        </div>
+
+        <div class="table-panel">
+
+            @if (!filteredConfigurations.IsNullOrEmpty())
+            {
+                <RadzenDataGrid Data="@filteredConfigurations" GridLines="DataGridGridLines.Both">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="TableItem" CssClass="buttons view-cell" Width="80px" Sortable="false">
+                            <Template Context="context">
+                                <a href="@GetViewLink(context)" class="btn btn-link btn-edit"><span class="icon fa-sharp fa-regular fa-square-arrow-up-right"></span>View</a>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="TableItem" Property="Enabled" Title="Enabled" CssClass="buttons enable-cell" Width="100px" Sortable="false">
+                            <Template Context="context">
+                                <RadzenSwitch @bind-Value=@context.Enabled Change=@(args => ToggleEnabled(context, args)) />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="TableItem" Property="SharcId" Title="SHARC ID" Width="120px" />
+                        <RadzenDataGridColumn TItem="TableItem" Property="Availability" Title="Availability" Width="100px" />
+                        <RadzenDataGridColumn TItem="TableItem" Property="Description" Title="Description" MinWidth="300px" />
+                        <RadzenDataGridColumn TItem="TableItem" Property="MqttServer" Title="MQTT" Width="150px" />
+                        <RadzenDataGridColumn TItem="TableItem" Property="net.IpAddress" Title="IP Address" Width="150px" />
+                        <RadzenDataGridColumn TItem="TableItem" Property="net.Type" Title="Network" Width="120px" />
+                        <RadzenDataGridColumn TItem="TableItem" Property="ver.FirmwareVersion" Title="Firmware" Width="100px" />
+                        <RadzenDataGridColumn TItem="TableItem" CssClass="buttons remove-cell" Width="100px" Sortable="false">
+                            <Template Context="context">
+                                <button class="btn btn-link btn-remove" @onclick="() => DeleteClicked(context)"><span class="icon fa-regular fa-sharp fa-delete-right"></span>Delete</button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+
+        </div>
+
+        <Modal Class="add-connection-modal" Visible="@addModalVisible">
+            <HeaderContent>
+                <span class="modal-header-icon fa-solid fa-regular fa-square-plus"></span>
+                <span class="modal-header-title">Add SHARC Sensor</span>
+            </HeaderContent>
+            <BodyContent>
+                <div class="modal-body-content">
+                    <div class="modal-section">
+                        <TextBox Title="Description" @bind-Value="@description" Size="Size.Small" />
+                    </div>
+                    <div class="modal-section">
+                        <TextBox Title="Address" @bind-Value="@address" Size="Size.Small" />
+                    </div>
+                    <div class="modal-section-columns modal-section">
+                        <div class="modal-section-column">
+                            <SpinEdit Title="Port" @bind-Value="@port" Size="Size.Small" />
+                        </div>
+                        <div class="modal-section-column">
+                            <TextBox Title="Device Name" @bind-Value="@deviceName" Size="Size.Small" />
+                        </div>
+                    </div>
+                    <div class="modal-section-columns modal-section">
+                        <div class="modal-section-column">
+                            <SpinEdit Title="Stream Interval" @bind-Value="@streamInterval" Size="Size.Small" Units="ms" />
+                        </div>
+                        <div class="modal-section-column">
+                            <SpinEdit Title="Stream Heartbeat" @bind-Value="@heartbeatInterval" Size="Size.Small" Units="ms" />
+                        </div>
+                    </div>
+                    <div class="modal-section">
+                        <TextBox Title="Device Name Override" @bind-Value="@deviceNameOverride" Size="Size.Small" />
+                        <TextBox Title="Device Base Path" @bind-Value="@deviceBasePath" Size="Size.Small" />
+                        <TextBox Title="Asset Base Path" @bind-Value="@assetBasePath" Size="Size.Small" />
+                    </div>
+                </div>
+            </BodyContent>
+            <FooterContent>
+
+                @if (!addModalLoading)
+                {
+                    <button class="btn btn-secondary" @onclick="ModalCancelClicked"><span class="icon fa-solid fa-sharp fa-xmark"></span>Cancel</button>
+                    <button class="btn btn-primary" @onclick="ModalAddClicked"><span class="icon fa-solid fa-sharp fa-plus"></span>Add</button>
+                }
+                else
+                {
+                    <button class="btn btn-primary disabled"><span class="icon fa-solid fa-sharp fa-loader"></span>Adding..</button>
+                }
+
+            </FooterContent>
+        </Modal>
+
+        <Modal Class="delete-connection-modal" Visible="@deleteModalVisible">
+            <HeaderContent>
+                <span class="modal-header-icon fa-solid fa-sharp fa-delete-right"></span>
+                <span class="modal-header-title">Confirm Delete Connection</span>
+            </HeaderContent>
+            <BodyContent>
+                <div class="modal-body-content">
+                    <span class="delete-modal-message">Confirm Deletion?</span>
+                    <div class="delete-modal-items">
+                        <p>@deleteId</p>
+                    </div>
+                </div>
+            </BodyContent>
+            <FooterContent>
+
+                @if (!deleteModalLoading)
+                {
+                    <button class="btn btn-secondary" @onclick="ModalCancelClicked"><span class="icon fa-solid fa-sharp fa-xmark"></span>Cancel</button>
+                    <button class="btn btn-danger" @onclick="ModalDeleteClicked"><span class="icon fa-solid fa-sharp fa-trash"></span>Delete</button>
+                }
+                else
+                {
+                    <button class="btn btn-danger disabled"><span class="icon fa-solid fa-sharp fa-loader"></span>Deleting..</button>
+                }
+
+            </FooterContent>
+        </Modal>
+    }
+    else
+    {
+        <div class="loading-panel">
+            <Loading Message="@loadingMessage" />
+        </div>
+    }
+
+</div>
+
+@code {
+
+    private IEnumerable<TableItem> configurations;
+
+    private string filter;
+    private IEnumerable<TableItem> filteredConfigurations;
+    private DelayEvent filterDelay = new DelayEvent(100);
+
+    private bool addModalVisible;
+    private bool addModalLoading;
+    private string description;
+    private string address;
+    private int port = 5000;
+    private string deviceName;
+    private int streamInterval = 100;
+    private int heartbeatInterval = 10000;
+    private string deviceNameOverride;
+    private string deviceBasePath;
+    private string assetBasePath;
+
+    private bool deleteModalVisible;
+    private bool deleteModalLoading;
+    private string deleteId;
+
+    private bool loaded = false;
+    private bool loading = true;
+    private string loadingMessage = "Loading Sensors..";
+
+
+    class TableItem : TrakHoundSharcModel
+    {
+        public string MqttServer => mqtt != null ? $"{mqtt.Address}:{mqtt.Port}" : null;
+
+        public string OrderKey { get; set; }
+
+        public string FilterKey { get; set; }
+    }
+
+
+    protected override void OnInitialized()
+    {
+        filterDelay.Elapsed += FilterDelayElapsed;
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    void IDisposable.Dispose()
+    {
+        if (filterDelay != null) filterDelay.Dispose();
+    }
+
+    private async void RefreshClicked()
+    {
+        await Load(true);
+    }
+
+    private async Task Load(bool forceLoad = false)
+    {
+        if (forceLoad || !loaded)
+        {
+            configurations = null;
+            loaded = true;
+            loading = true;
+            loadingMessage = "Loading Sensors..";
+            await InvokeAsync(StateHasChanged);
+
+            var sensorConfigurations = await Client.Api.QueryJson<IEnumerable<SensorConfiguration>>($"sharc/collection/api");
+            if (!sensorConfigurations.IsNullOrEmpty())
+            {
+                var tableItems = new List<TableItem>();
+                foreach (var sensorConfiguration in sensorConfigurations)
+                {
+                    var tableItem = new TableItem();
+                    tableItem.SharcId = sensorConfiguration.Id;
+                    tableItem.Enabled = sensorConfiguration.Enabled;
+                    tableItem.Description = sensorConfiguration.Description;
+
+                    var sensor = await Client.Api.QueryJson<TrakHoundSharcModel>($"sharc/api/{sensorConfiguration.Id}");
+                    if (sensor != null)
+                    {
+                        tableItem.Availability = sensor.Availability;
+                        tableItem.net = sensor.net;
+                        tableItem.rc = sensor.rc;
+                        tableItem.mqtt = sensor.mqtt;
+                        tableItem.sensor = sensor.sensor;
+                        tableItem.ver = sensor.ver;
+                    }
+
+                    tableItem.OrderKey = $"{tableItem.SharcId}".ToLower();
+                    tableItem.FilterKey = GetFilterKey(tableItem);
+
+                    tableItems.Add(tableItem);
+                }
+                configurations = tableItems.OrderBy(o => o.OrderKey);
+                filteredConfigurations = configurations;
+            }
+
+            loading = false;
+            loadingMessage = null;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async void AddClicked()
+    {
+        addModalVisible = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void ModalAddClicked()
+    {
+        // if (!string.IsNullOrEmpty(address) && !string.IsNullOrEmpty(deviceName))
+        // {
+        //     addModalLoading = true;
+        //     await InvokeAsync(StateHasChanged);
+
+        //     var connection = new SharcSensorConfiguration();
+        //     connection.Id = $"c-{StringFunctions.RandomString(6).ToLower()}";
+        //     connection.Description.Description = description;
+        //     connection.Connection.Address = address;
+        //     connection.Connection.Port = port;
+        //     connection.Connection.Device = deviceName;
+        //     connection.Connection.StreamInterval = streamInterval;
+        //     connection.Connection.HeartbeatInterval = heartbeatInterval;
+        //     connection.DeviceBasePath = deviceBasePath;
+        //     connection.AssetBasePath = assetBasePath;
+
+        //     await Client.Entities.Publish(connection);
+
+        //     addModalVisible = false;
+        //     await Load(true);
+        // }
+    }
+
+    private async void DeleteClicked(TableItem item)
+    {
+        deleteId = item.SharcId;
+        deleteModalVisible = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void ModalDeleteClicked()
+    {
+        deleteModalLoading = true;
+        await InvokeAsync(StateHasChanged);
+
+        if (!string.IsNullOrEmpty(deleteId))
+        {
+            if ((await Client.Api.Delete($"sharc/collection/api/{deleteId}")).Success)
+            {
+                await Load(true);
+            }
+            else
+            {
+
+            }
+        }
+
+        deleteId = null;
+        deleteModalLoading = false;
+        deleteModalVisible = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void ModalCancelClicked()
+    {
+        addModalVisible = false;
+        deleteModalVisible = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void ToggleEnabled(TableItem item, bool enabled)
+    {
+        item.Enabled = enabled;
+
+        if (enabled)
+        {
+            await Client.Api.Publish($"sharc/collection/api/{item.SharcId}/enable");
+        }
+        else
+        {
+            await Client.Api.Publish($"sharc/collection/api/{item.SharcId}/disable");
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private string GetViewLink(TableItem item)
+    {
+        return GetPath($"sensors/{item.SharcId}");
+    }
+
+    private void FilterChanged(string s)
+    {
+        filter = s;
+        filterDelay.Set();
+    }
+
+    private async void FilterDelayElapsed(object sender, EventArgs args)
+    {
+        if (!string.IsNullOrEmpty(filter) && !configurations.IsNullOrEmpty())
+        {
+            filteredConfigurations = configurations.Where(o => o.FilterKey.Contains(filter.ToLower()));
+        }
+        else
+        {
+            filteredConfigurations = configurations;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static string GetFilterKey(TableItem item)
+    {
+        var properties = new string[] {
+            item.SharcId,
+            item.Description,
+            item.MqttServer
+        };
+
+        return string.Join(':', properties).ToLower();
+    }
+
+}

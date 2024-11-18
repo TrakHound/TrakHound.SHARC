@@ -1,0 +1,272 @@
+﻿.page {
+    display: grid;
+    grid-template-rows: max-content max-content max-content 1fr;
+    height: 100%;
+    overflow: hidden;
+    background: #fff;
+}
+
+.breadcrumb-panel {
+    grid-row: 1;
+}
+
+.nav-panel {
+    grid-row: 2;
+}
+
+.toolbar-panel {
+    grid-row: 3;
+    background: #fafafa;
+    padding: 10px 10px;
+    display: grid;
+    grid-template-columns: max-content 1fr max-content;
+    grid-column-gap: 10px;
+}
+
+.toolbar-panel-left {
+    grid-column: 1;
+}
+
+.toolbar-panel-center {
+    grid-column: 2;
+}
+
+.toolbar-panel-right {
+    grid-column: 3;
+}
+
+.toolbar-panel .btn {
+    min-width: 80px;
+    height: 38px;
+    padding: 8px 15px;
+    font-size: 14px;
+}
+
+.toolbar-panel .btn-refresh {
+    min-width: 0;
+    padding: 8px 20px;
+}
+
+    .toolbar-panel .btn-refresh .icon {
+        margin: 0;
+    }
+
+.toolbar-panel ::deep .filter-input {
+    padding: 0;
+    height: 28px;
+}
+
+    .toolbar-panel ::deep .filter-input input {
+        padding: 5px 20px !important;
+        height: 38px !important;
+        background: #fff !important;
+    }
+
+.table-panel {
+    grid-row: 4;
+    height: 100%;
+    overflow: hidden;
+}
+
+    .table-panel ::deep .rz-data-grid {
+        border: none !important;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .table-panel ::deep th {
+        padding: 0px;
+    }
+
+        .table-panel ::deep th > div {
+            padding: 5px 10px !important;
+        }
+
+        .table-panel ::deep th .rz-column-title {
+            padding: 0px;
+        }
+
+    .table-panel ::deep td {
+        padding: 0px 10px;
+    }
+
+        .table-panel ::deep td .rz-cell-data {
+            font-size: 12px;
+            padding: 0;
+        }
+
+    .table-panel ::deep .license-information {
+        display: grid;
+        grid-template-rows: 1fr max-content;
+        padding: 7px 10px;
+    }
+
+    .table-panel ::deep .license-information-top {
+        grid-row: 1;
+    }
+
+    .table-panel ::deep .license-information-bottom {
+        grid-row: 2;
+        display: grid;
+        grid-template-columns: 1fr max-content;
+    }
+
+    .table-panel ::deep .license-code {
+        display: block;
+        font-size: 12px;
+        line-height: 12px;
+        font-weight: bold;
+    }
+
+    .table-panel ::deep .license-expiration {
+        display: block;
+        font-size: 11px;
+        font-weight: normal;
+        line-height: 12px;
+    }
+
+        .table-panel ::deep .license-expiration .label {
+            margin-right: 10px;
+        }
+
+    .table-panel ::deep .btn-license-unassign {
+        display: block;
+        font-size: 12px;
+        font-weight: normal;
+        line-height: 12px;
+        padding: 0;
+        color: var(--colorRed) !important;
+    }
+
+        .table-panel ::deep .btn-license-unassign:hover {
+            color: var(--colorRedLight) !important;
+        }
+
+
+    .table-panel ::deep .license-code-cell .rz-dropdown {
+        font-size: 12px;
+        width: 100%;
+    }
+
+    .table-panel ::deep td.buttons {
+        padding: 0 !important;
+    }
+
+    .table-panel ::deep .buttons {
+        padding: 0;
+    }
+
+        .table-panel ::deep .buttons .btn {
+            font-size: 12px;
+        }
+
+        .table-panel ::deep .buttons.view-cell .rz-cell-data {
+            padding: 0 !important;
+        }
+
+        .table-panel ::deep .buttons.enable-cell .rz-cell-data {
+            padding: 6px 0 !important;
+            text-align: center;
+        }
+
+        .table-panel ::deep .buttons.remove-cell .rz-cell-data {
+            padding: 0 !important;
+        }
+
+        .table-panel ::deep .buttons .btn {
+            font-size: 12px;
+            height: 100%;
+            width: 100%;
+            border-radius: 0;
+        }
+
+        .table-panel ::deep .buttons.view-cell .btn {
+            padding: 0px 10px 0px !important;
+        }
+
+    .table-panel ::deep .license-code-cell {
+        padding: 0px 0px 0px !important;
+    }
+
+    .table-panel ::deep .license-code-cell .rz-dropdown {
+        border: none !important;
+    }
+
+    .table-panel ::deep .buttons.remove-cell {
+        padding: 0px 0px 0px !important;
+    }
+
+        .table-panel ::deep .buttons.remove-cell .btn {
+            padding: 0px 10px 0px !important;
+            color: var(--colorRed) !important;
+            height: 30px;
+        }
+
+            .table-panel ::deep .buttons.remove-cell .btn:hover {
+                color: #fff !important;
+            }
+
+    .table-panel ::deep .buttons .btn .icon {
+        padding: 0;
+        font-size: 12px;
+        margin-right: 4px;
+    }
+
+    .table-panel ::deep .rz-switch-circle {
+        background: #ddd;
+        transition: none;
+        animation: none;
+        height: 12px;
+    }
+
+    .table-panel ::deep .rz-switch-checked .rz-switch-circle {
+        background: var(--accentVeryLight);
+    }
+
+    .table-panel ::deep .rz-switch-circle::before {
+        background: #888;
+        transition: none;
+        height: 18px;
+        width: 18px;
+    }
+
+    .table-panel ::deep .rz-switch-checked .rz-switch-circle::before {
+        background: var(--accentLight);
+    }
+
+    .table-panel ::deep .rz-switch-checked:hover .rz-switch-circle::before {
+        background: var(--accent);
+    }
+
+    .table-panel ::deep .rz-switch-circle:hover:not(.rz-disabled):before {
+        box-shadow: 0 0 0 5px rgba(200, 200, 200, 0.25);
+    }
+
+    .table-panel ::deep .rz-switch-checked .rz-switch-circle:hover:not(.rz-disabled):before {
+        box-shadow: 0 0 0 5px rgba(0, 99, 204, 0.1);
+    }
+
+
+.btn-edit {
+    width: 100%;
+    border-radius: 0;
+    transition: none;
+    font-size: 14px;
+}
+
+
+.page ::deep .add-license-modal .modal-body-content {
+    padding: 30px 50px;
+}
+
+.page ::deep .add-license-modal .product-id-input input {
+    background: var(--accentDark) !important;
+    color: #fff;
+    font-family: Consolas;
+}
+
+
+.loading-panel {
+    grid-row-start: 3;
+    grid-row-end: 6;
+}

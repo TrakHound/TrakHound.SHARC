@@ -2,33 +2,40 @@
 using System.Text.Json.Serialization;
 using TrakHound.Serialization;
 
-namespace SHARC.TrakHound
+namespace SHARC
 {
-    [TrakHoundObject(DefinitionId = "SHARC.DeviceInformation")]
+    [TrakHoundObject]
+    [TrakHoundDefinition("SHARC.DeviceInformation")]
     public class TrakHoundSharcDeviceInformationModel
     {
         [JsonPropertyName("mfg")]
-        [TrakHoundString("mfg", DefinitionId = "SHARC.DeviceInformation.Manufacturer")]
+        [TrakHoundString("mfg")]
+        [TrakHoundDefinition("SHARC.DeviceInformation.Manufacturer")]
         public string Manufacturer { get; set; }
 
         [JsonPropertyName("model")]
-        [TrakHoundString("model", DefinitionId = "SHARC.DeviceInformation.Model")]
+        [TrakHoundString("model")]
+        [TrakHoundDefinition("SHARC.DeviceInformation.Model")]
         public string Model { get; set; }
 
         [JsonPropertyName("serial")]
-        [TrakHoundString("serial", DefinitionId = "SHARC.DeviceInformation.Serial")]
+        [TrakHoundString("serial")]
+        [TrakHoundDefinition("SHARC.DeviceInformation.Serial")]
         public string Serial { get; set; }
 
         [JsonPropertyName("hw")]
-        [TrakHoundString("hw", DefinitionId = "SHARC.DeviceInformation.HardwareVersion")]
+        [TrakHoundString("hw")]
+        [TrakHoundDefinition("SHARC.DeviceInformation.HardwareVersion")]
         public string HardwareVersion { get; set; }
 
         [JsonPropertyName("fw")]
-        [TrakHoundString("fw", DefinitionId = "SHARC.DeviceInformation.FirmwareVersion")]
+        [TrakHoundString("fw")]
+        [TrakHoundDefinition("SHARC.DeviceInformation.FirmwareVersion")]
         public string FirmwareVersion { get; set; }
 
         [JsonPropertyName("sw")]
-        [TrakHoundString("sw", DefinitionId = "SHARC.DeviceInformation.SoftwareVersion")]
+        [TrakHoundString("sw")]
+        [TrakHoundDefinition("SHARC.DeviceInformation.SoftwareVersion")]
         public string SoftwareVersion { get; set; }
 
 

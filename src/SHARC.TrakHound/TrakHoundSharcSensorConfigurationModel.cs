@@ -2,21 +2,25 @@
 using System.Text.Json.Serialization;
 using TrakHound.Serialization;
 
-namespace SHARC.TrakHound
+namespace SHARC
 {
-    [TrakHoundObject(DefinitionId = "SHARC.Sensor")]
+    [TrakHoundObject]
+    [TrakHoundDefinition("SHARC.Sensor")]
     public class TrakHoundSharcSensorConfigurationModel
     {
         [JsonPropertyName("aggregate")]
-        [TrakHoundBoolean("aggregate", DefinitionId = "SHARC.Sensor.Aggregate")]
+        [TrakHoundBoolean("aggregate")]
+        [TrakHoundDefinition("SHARC.Sensor.Aggregate")]
         public bool Aggregate { get; set; }
 
         [JsonPropertyName("calibrate")]
-        [TrakHoundBoolean("calibrate", DefinitionId = "SHARC.Sensor.Calibrate")]
+        [TrakHoundBoolean("calibrate")]
+        [TrakHoundDefinition("SHARC.Sensor.Calibrate")]
         public bool Calibrate { get; set; }
 
         [JsonPropertyName("convert")]
-        [TrakHoundBoolean("convert", DefinitionId = "SHARC.Sensor.Convert")]
+        [TrakHoundBoolean("convert")]
+        [TrakHoundDefinition("SHARC.Sensor.Convert")]
         public bool Convert { get; set; }
 
         [JsonPropertyName("s0")]

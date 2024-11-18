@@ -2,11 +2,8 @@
 
 namespace SHARC.Mqtt
 {
-    public class SharcMqttClientConfiguration
+    public class SharcMqttDiscoveryClientConfiguration
     {
-        [JsonPropertyName("sharcId")]
-        public string SharcId { get; set; }
-
         [JsonPropertyName("server")]
         public string Server { get; set; }
 
@@ -47,7 +44,7 @@ namespace SHARC.Mqtt
         public int RetryInterval { get; set; }
 
 
-        public SharcMqttClientConfiguration()
+        public SharcMqttDiscoveryClientConfiguration()
         {
             Server = "localhost";
             Port = 1883;

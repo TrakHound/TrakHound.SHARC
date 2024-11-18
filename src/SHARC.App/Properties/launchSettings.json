@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SHARC.App": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:63717;http://localhost:63718"
+    }
+  }
+}

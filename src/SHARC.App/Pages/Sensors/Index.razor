@@ -1,10 +1,172 @@
 ﻿@page "/sensors/{sharcId}"
+@inherits TrakHoundComponentBase
+@layout Layout
+@using TrakHound.Requests
+@using System.Text.Json.Serialization
 
-<h3>@SharcId</h3>
+<TrakHoundPageTitle>@GetPageTitle()</TrakHoundPageTitle>
+
+<div class="page">
+
+    <div class="breadcrumb-panel">
+        <BreadcrumbLinks>
+            <BreadcrumbLink Display="Sensors" Link="@GetPath("/")"></BreadcrumbLink>
+            <BreadcrumbLink Display="@SharcId"></BreadcrumbLink>
+        </BreadcrumbLinks>
+    </div>
+
+    @if (!loading)
+    {
+        <div class="toolbar-panel">
+            <div class="toolbar-panel-left">
+                <button class="btn btn-light btn-refresh" @onclick="RefreshClicked"><span class="icon fa-solid fa-sharp fa-rotate"></span></button>
+                <RadzenDropDown TValue="string" Data="@sensorNames" @bind-Value="@selectedSensorName" />
+            </div>
+            <div class="toolbar-panel-center">
+                <TimeRangeSelection />
+            </div>
+        </div>
+
+        @if (!tableItems.IsNullOrEmpty())
+        {
+            <div class="status-panel">
+                <span>@tableItems.Count()</span>
+            </div>
+            <div class="content-panel">
+                <RadzenSplitter Orientation="Orientation.Vertical">
+                    <RadzenSplitterPane Min="100px">
+                        <div class="chart-panel">
+                            <RadzenChart>
+                                <RadzenLineSeries Data="@tableItems" CategoryProperty="Timestamp" Title="@selectedSensorName" ValueProperty="Value" StrokeWidth="1"/>
+                                <RadzenLegend Visible="false" />
+                            </RadzenChart>
+                        </div>
+                    </RadzenSplitterPane>
+                    <RadzenSplitterPane Min="100px">
+                        <div class="table-panel">
+                            <RadzenDataGrid Data="@tableItems"
+                                            TItem="TableItem"
+                                            Density="Density.Compact"
+                                            AllowVirtualization="true"
+                                            GridLines="DataGridGridLines.Vertical">
+                                <Columns>
+                                    <RadzenDataGridColumn TItem="TableItem" Property="SensorName" Title="SensorName" Width="100px" />
+                                    <RadzenDataGridColumn TItem="TableItem" Property="Value" Title="Value" />
+                                    <RadzenDataGridColumn TItem="TableItem" Property="Timestamp" Title="Timestamp" Width="150px" />
+                                </Columns>
+                            </RadzenDataGrid>
+                        </div>
+                    </RadzenSplitterPane>
+                </RadzenSplitter>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="loading-panel">
+            <Loading Message="@loadingMessage" />
+        </div>
+    }
+
+</div>
 
 @code {
 
+    private TrakHoundSharcModel model;
+    private IEnumerable<TableItem> tableItems;
+
+    private IEnumerable<string> sensorNames;
+    private string selectedSensorName;
+
+    private bool loaded = false;
+    private bool loading = true;
+    private string loadingMessage = "Loading Sensors..";
+
+
+    class TableItem
+    {
+        public string SensorName { get; set; }
+        public double Value { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    class ValueModel
+    {
+        [JsonPropertyName("value")]
+        public string Value { get; set; }
+
+        [JsonPropertyName("timestamp")]
+        public DateTime Timestamp { get; set; }
+    }
+
+
     [Parameter]
     public string SharcId { get; set; }
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async void RefreshClicked()
+    {
+        await Load(true);
+    }
+
+    private async Task Load(bool forceLoad = false)
+    {
+        if (forceLoad || !loaded)
+        {
+            loaded = true;
+            loading = true;
+            loadingMessage = "Loading Sensor..";
+            await InvokeAsync(StateHasChanged);
+
+            model = await Client.Api.QueryJson<TrakHoundSharcModel>($"sharc/api/{SharcId}");
+
+            sensorNames = await Client.Api.QueryJson<IEnumerable<string>>($"sharc/api/{SharcId}/io");
+            if (!sensorNames.IsNullOrEmpty())
+            {
+                if (!string.IsNullOrEmpty(selectedSensorName))
+                {
+                    var from = DateTime.Today;
+                    var to = from.AddDays(1);
+
+                    var queryParameters = new Dictionary<string, string>();
+                    queryParameters.Add("from", from.ToUnixTime().ToString());
+                    queryParameters.Add("to", to.ToUnixTime().ToString());
+                    queryParameters.Add("skip", "0");
+                    queryParameters.Add("take", "5000");
+
+                    var values = await Client.Api.QueryJson<IEnumerable<ValueModel>>($"sharc/api/{SharcId}/io/{selectedSensorName}", queryParameters);
+                    if (!values.IsNullOrEmpty())
+                    {
+                        var valueItems = new List<TableItem>();
+                        foreach (var value in values.OrderByDescending(o => o.Timestamp))
+                        {
+                            var valueItem = new TableItem();
+                            valueItem.SensorName = selectedSensorName;
+                            valueItem.Value = value.Value.ToDouble();
+                            valueItem.Timestamp = value.Timestamp;
+                            valueItems.Add(valueItem);
+                        }
+
+                        tableItems = valueItems;
+                    }
+                }
+            }
+            
+            loading = false;
+            loadingMessage = null;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+
+    private string GetPageTitle()
+    {
+        return $"SHARC - {SharcId}";
+    }
 
 }

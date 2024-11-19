@@ -41,6 +41,27 @@ namespace SHARC.Api
             }
         }
 
+        [TrakHoundApiQuery("{sharcId}/io")]
+        public async Task<TrakHoundApiResponse> GetSensorInformation([FromRoute] string sharcId)
+        {
+            if (!string.IsNullOrEmpty(sharcId))
+            {
+                var objs = await Client.Entities.GetObjects($"type=SHARC&meta@SharcId={sharcId}/io/*");
+                if (objs != null)
+                {
+                    return Ok(objs.Select(o => o.Name));
+                }
+                else
+                {
+                    return NotFound("SHARC Not Found");
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
         [TrakHoundApiQuery("{sharcId}/io/{sensorName}")]
         public async Task<TrakHoundApiResponse> QuerySensorValues(
             [FromRoute] string sharcId, 

@@ -2,6 +2,8 @@
 
 namespace SHARC.Mqtt
 {
+    //public class SharcDistinctSensorEvent : SharcMqttEvent<double> { }
+
     public class SharcDistinctSensorEvent : SharcMqttEvent<SharcDistinctSensorValue>
     {
         [JsonIgnore]

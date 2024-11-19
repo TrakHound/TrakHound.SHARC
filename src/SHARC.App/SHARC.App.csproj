@@ -6,15 +6,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TrakHound.Debug.Apps" Version="*" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<Content Remove="trakhound.package.json" />
 		<None Include="trakhound.package.json" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\..\TrakHound\libraries\TrakHound.Debug.Apps\TrakHound.Debug.Apps.csproj" />
 	  <ProjectReference Include="..\SHARC.TrakHound\SHARC.TrakHound.csproj" />
 	</ItemGroup>
 

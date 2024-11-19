@@ -1,0 +1,52 @@
+﻿.sensors-layout {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    height: 100%;
+    overflow: hidden;
+    background: var(--panelBackground);
+}
+
+.sensors-layout-sidebar {
+    grid-column: 1;
+    border-right: 1px solid var(--borderColorLight);
+    background: var(--panelSidebarBackground);
+}
+
+    .sensors-layout-sidebar ::deep .btn-navigation {
+        display: block;
+        height: 65px;
+        width: 65px;
+        border: none;
+        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--borderColorVeryLight);
+        border-radius: 0;
+        padding: 0;
+        padding-top: 12px;
+    }
+
+        .sensors-layout-sidebar ::deep .btn-navigation.active {
+            background: #2870bd;
+        }
+
+        .sensors-layout-sidebar ::deep .btn-navigation:focus {
+            box-shadow: none;
+        }
+
+        .sensors-layout-sidebar ::deep .btn-navigation .icon {
+            display: block;
+            font-size: 18px;
+            margin: 0;
+            margin-bottom: 6px;
+        }
+
+        .sensors-layout-sidebar ::deep .btn-navigation .text {
+            display: block;
+            font-size: 11px;
+            margin: 0;
+        }
+
+.sensors-layout-content {
+    grid-column: 2;
+    height: 100%;
+    overflow: hidden;
+}

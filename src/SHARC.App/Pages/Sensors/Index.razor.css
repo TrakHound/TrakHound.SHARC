@@ -9,6 +9,13 @@
 
 .toolbar-panel {
     grid-row: 2;
+    display: grid;
+    grid-auto-columns: max-content;
+    grid-auto-flow: column;
+}
+
+.toolbar-panel {
+    grid-row: 2;
 }
 
 .status-panel {

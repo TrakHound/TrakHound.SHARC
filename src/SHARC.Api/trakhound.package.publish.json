@@ -1,5 +1,5 @@
 {
-  "version": "0.0.21",
+  "version": "0.0.24",
   "destinations": [
     {
       "managementServer": "https://www.trakhound.com/management",

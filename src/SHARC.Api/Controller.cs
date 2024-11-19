@@ -1,4 +1,5 @@
-﻿using TrakHound;
+﻿using System.Text.Json.Serialization;
+using TrakHound;
 using TrakHound.Api;
 using TrakHound.Requests;
 
@@ -6,6 +7,20 @@ namespace SHARC.Api
 {
     public partial class Controller : TrakHoundApiController
     {
+        class AggregateWindow
+        {
+            [JsonPropertyName("start")]
+            public DateTime Start { get; set; }
+
+            [JsonPropertyName("end")]
+            public DateTime End { get; set; }
+
+            [JsonPropertyName("value")]
+            public double Value { get; set; }
+        }
+
+
+
         [TrakHoundApiQuery]
         public async Task<TrakHoundApiResponse> GetList()
         {
@@ -87,6 +102,109 @@ namespace SHARC.Api
                         if (!observations.IsNullOrEmpty())
                         {
                             return Ok(observations);
+                        }
+                        else
+                        {
+                            return NotFound($"No Sensor Values Found between '{from.ToString("o")}' and '{to.ToString("o")}'");
+                        }
+                    }
+                    else
+                    {
+                        return NotFound($"SHARC Sensor Not Found : ID = {sharcId} : SensorName = {sensorName}");
+                    }
+                }
+                else
+                {
+                    return NotFound($"SHARC Not Found : ID = {sharcId}");
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [TrakHoundApiQuery("{sharcId}/io/{sensorName}/aggregate")]
+        public async Task<TrakHoundApiResponse> AggregateSensorValues(
+            [FromRoute] string sharcId,
+            [FromRoute] string sensorName,
+            [FromQuery] DateTime from,
+            [FromQuery] DateTime to,
+            [FromQuery] string aggregateType,
+            [FromQuery] string aggregateWindow
+            )
+        {
+            if (!string.IsNullOrEmpty(sharcId) && !string.IsNullOrEmpty(sensorName))
+            {
+                var sharcObj = await Client.Entities.GetObject($"type=SHARC&meta@SharcId={sharcId}");
+                if (sharcObj != null)
+                {
+                    var sensorPath = TrakHoundPath.Combine(sharcObj.Path, "io", sensorName);
+
+                    var sensorObj = await Client.Entities.GetObject(sensorPath);
+                    if (sensorObj != null)
+                    {
+                        var type = aggregateType.ConvertEnum<TrakHoundAggregateType>();
+                        var window = (long)aggregateWindow.ToTimeSpan().TotalNanoseconds;
+
+                        var aggregateWindows = await Client.System.Entities.Objects.Observation.AggregateWindowByObject(sensorPath, type, window, from.ToUnixTime(), to.ToUnixTime());
+                        if (!aggregateWindows.IsNullOrEmpty())
+                        {
+                            var results = new List<AggregateWindow>();
+                            foreach (var x in aggregateWindows)
+                            {
+                                var result = new AggregateWindow();
+                                result.Start = x.Start.ToDateTime();
+                                result.End = x.End.ToDateTime();
+                                result.Value = x.Value;
+                                results.Add(result);
+                            }
+
+                            return Ok(results);
+                        }
+                        else
+                        {
+                            return NotFound($"No Sensor Values Found between '{from.ToString("o")}' and '{to.ToString("o")}'");
+                        }
+                    }
+                    else
+                    {
+                        return NotFound($"SHARC Sensor Not Found : ID = {sharcId} : SensorName = {sensorName}");
+                    }
+                }
+                else
+                {
+                    return NotFound($"SHARC Not Found : ID = {sharcId}");
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [TrakHoundApiQuery("{sharcId}/io/{sensorName}/count")]
+        public async Task<TrakHoundApiResponse> QuerySensorValueCount(
+            [FromRoute] string sharcId,
+            [FromRoute] string sensorName,
+            [FromQuery] DateTime from,
+            [FromQuery] DateTime to
+            )
+        {
+            if (!string.IsNullOrEmpty(sharcId) && !string.IsNullOrEmpty(sensorName))
+            {
+                var sharcObj = await Client.Entities.GetObject($"type=SHARC&meta@SharcId={sharcId}");
+                if (sharcObj != null)
+                {
+                    var sensorPath = TrakHoundPath.Combine(sharcObj.Path, "io", sensorName);
+
+                    var sensorObj = await Client.Entities.GetObject(sensorPath);
+                    if (sensorObj != null)
+                    {
+                        var count = (await Client.System.Entities.Objects.Observation.CountByObject(sensorPath, from.ToUnixTime(), to.ToUnixTime()))?.FirstOrDefault();
+                        if (count != null)
+                        {
+                            return Ok(count.Count.ToString());
                         }
                         else
                         {

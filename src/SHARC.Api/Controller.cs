@@ -2,20 +2,47 @@
 using TrakHound;
 using TrakHound.Api;
 using TrakHound.Requests;
+using TrakHound.Serialization;
 
 namespace SHARC.Api
 {
     public partial class Controller : TrakHoundApiController
     {
-        class AggregateWindow
+        class SharcSensorInformation
         {
-            [JsonPropertyName("start")]
+            [JsonPropertyName("name")]
+            [TrakHoundName]
+            public string Name { get; set; }
+
+            [JsonPropertyName("description")]
+            [TrakHoundMetadata("Description")]
+            public string Description { get; set; }
+
+            [JsonPropertyName("units")]
+            [TrakHoundMetadata("Units")]
+            public string Units { get; set; }
+        }
+
+        class ValueResponse
+        {
+            [JsonPropertyName("v")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+            public double Value { get; set; }
+
+            [JsonPropertyName("t")]
+            public DateTime Timestamp { get; set; }
+        }
+
+        class AggregateResponse
+        {
+            [JsonPropertyName("s")]
             public DateTime Start { get; set; }
 
-            [JsonPropertyName("end")]
+            [JsonPropertyName("e")]
             public DateTime End { get; set; }
 
-            [JsonPropertyName("value")]
+            [JsonPropertyName("v")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
             public double Value { get; set; }
         }
 
@@ -78,6 +105,28 @@ namespace SHARC.Api
         }
 
         [TrakHoundApiQuery("{sharcId}/io/{sensorName}")]
+        public async Task<TrakHoundApiResponse> GetSensorInformation([FromRoute] string sharcId, [FromRoute] string sensorName)
+        {
+            if (!string.IsNullOrEmpty(sharcId) && !string.IsNullOrEmpty(sensorName))
+            {
+                var sensorPath = $"type=SHARC&meta@SharcId={sharcId}/io/{sensorName}";
+                var model = await Client.Entities.GetSingle<SharcSensorInformation>(sensorPath);
+                if (model != null)
+                {
+                    return Ok(model);
+                }
+                else
+                {
+                    return NotFound("SHARC Sensor Not Found");
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [TrakHoundApiQuery("{sharcId}/io/{sensorName}/values")]
         public async Task<TrakHoundApiResponse> QuerySensorValues(
             [FromRoute] string sharcId, 
             [FromRoute] string sensorName,
@@ -98,10 +147,19 @@ namespace SHARC.Api
                     var sensorObj = await Client.Entities.GetObject(sensorPath);
                     if (sensorObj != null)
                     {
-                        var observations = (await Client.Entities.GetObservationValues(sensorPath, from, to, skip, take, (SortOrder)sortOrder))?.GetValueOrDefault(sensorPath);
+                        var observations = (await Client.Entities.GetObservationValues(sensorObj.Path, from, to, skip, take, (SortOrder)sortOrder))?.GetValueOrDefault(sensorObj.Path);
                         if (!observations.IsNullOrEmpty())
                         {
-                            return Ok(observations);
+                            var valueResponses = new List<ValueResponse>(observations.Count());
+                            foreach (var observation in observations)
+                            {
+                                var valueResponse = new ValueResponse();
+                                valueResponse.Value = observation.Value.ToDouble();
+                                valueResponse.Timestamp = observation.Timestamp;
+                                valueResponses.Add(valueResponse);
+                            }
+
+                            return Ok(valueResponses);
                         }
                         else
                         {
@@ -150,10 +208,10 @@ namespace SHARC.Api
                         var aggregateWindows = await Client.System.Entities.Objects.Observation.AggregateWindowByObject(sensorPath, type, window, from.ToUnixTime(), to.ToUnixTime());
                         if (!aggregateWindows.IsNullOrEmpty())
                         {
-                            var results = new List<AggregateWindow>();
+                            var results = new List<AggregateResponse>();
                             foreach (var x in aggregateWindows)
                             {
-                                var result = new AggregateWindow();
+                                var result = new AggregateResponse();
                                 result.Start = x.Start.ToDateTime();
                                 result.End = x.End.ToDateTime();
                                 result.Value = x.Value;
@@ -227,7 +285,7 @@ namespace SHARC.Api
             }
         }
 
-        [TrakHoundApiSubscribe("{sharcId}/io/{sensorName}")]
+        [TrakHoundApiSubscribe("{sharcId}/io/{sensorName}/values")]
         public async Task<ITrakHoundConsumer<TrakHoundApiResponse>> SubscribeSensorValue([FromRoute] string sharcId, [FromRoute] string sensorName, [FromQuery] int interval = 1000)
         {
             if (!string.IsNullOrEmpty(sharcId) && !string.IsNullOrEmpty(sensorName))
@@ -243,19 +301,14 @@ namespace SHARC.Api
                         var consumer = await Client.Entities.SubscribeObservations(sensorPath);
                         if (consumer != null)
                         {
-                            var outputConsumer = new TrakHoundConsumer<IEnumerable<TrakHoundObservation>, TrakHoundApiResponse>(consumer);
-                            outputConsumer.OnReceived = (observations) =>
+                            var outputConsumer = new TrakHoundConsumer<TrakHoundObservation, TrakHoundApiResponse>(consumer);
+                            outputConsumer.OnReceived = (observation) =>
                             {
-                                var observationValues = new List<TrakHoundObservationValue>();
-                                foreach (var observation in observations)
-                                {
-                                    var observationValue = new TrakHoundObservationValue();
-                                    observationValue.Value = observation.Value;
-                                    observationValue.Timestamp = observation.Timestamp;
-                                    observationValues.Add(observationValue);
-                                }
+                                var valueResponse = new ValueResponse();
+                                valueResponse.Value = observation.Value.ToDouble();
+                                valueResponse.Timestamp = observation.Timestamp;
 
-                                return TrakHoundApiJsonResponse.Ok(observationValues);
+                                return TrakHoundApiJsonResponse.Ok(valueResponse);
                             };
                             return outputConsumer;
                         }

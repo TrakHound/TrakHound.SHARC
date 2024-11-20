@@ -1,0 +1,29 @@
+﻿@inherits TrakHoundComponentBase
+
+<div class="sensors-sidebar">
+    <NavLink Match="NavLinkMatch.All" href="@GetNavLink("analyze")" class="btn btn-command btn-navigation">
+        <span class="icon fa-solid fa-sharp fa-chart-mixed"></span>
+        <span class="text">Analyze</span>
+    </NavLink>
+    <NavLink Match="NavLinkMatch.All" href="@GetNavLink("live")" class="btn btn-command btn-navigation">
+        <span class="icon fa-solid fa-sharp fa-signal-stream"></span>
+        <span class="text">Live</span>
+    </NavLink>
+    <NavLink Match="NavLinkMatch.All" href="@GetNavLink("information")" class="btn btn-command btn-navigation">
+        <span class="icon fa-regular fa-sharp fa-circle-info"></span>
+        <span class="text">Info</span>
+    </NavLink>
+</div>
+
+@code {
+
+    [Parameter]
+    public string SharcId { get; set; }
+
+
+    private string GetNavLink(string path = null)
+    {
+        return GetPath(Url.Combine("sensors", SharcId, path));
+    }
+
+}

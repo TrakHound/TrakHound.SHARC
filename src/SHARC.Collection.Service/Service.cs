@@ -270,10 +270,19 @@ namespace SHARC.Collection
 
                 if (data != null && data.Value != null)
                 {
+                    // Create Sensor Object
                     var sensorObjectPath = TrakHoundPath.Combine(ioObject.Path, data.SensorName);
                     var sensorObject = new TrakHoundObjectEntity(sensorObjectPath, TrakHoundObjectContentType.Observation, sourceUuid: "debug");
                     if (EntityFilter.Add(sensorObject)) entities.Add(sensorObject);
 
+                    // Set Units
+                    if (data.Value.Units != null)
+                    {
+                        var unitsMetadata = new TrakHoundObjectMetadataEntity(sensorObject.Uuid, "Units", data.Value.Units, sourceUuid: "debug");
+                        if (EntityFilter.Add(unitsMetadata)) entities.Add(unitsMetadata);
+                    }
+
+                    // Create Observation
                     var observation = new TrakHoundObjectObservationEntity(sensorObject.Uuid, data.Value.Value, sourceUuid: "debug", dataType: (int)TrakHoundObservationDataType.Float);
                     if (EntityFilter.Add(observation)) entities.Add(observation);
                 }

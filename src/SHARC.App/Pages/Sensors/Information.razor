@@ -1,0 +1,191 @@
+﻿@page "/sensors/{sharcId}/information"
+@inherits TrakHoundComponentBase
+@layout Layout
+
+<div class="page">
+    <div class="breadcrumb-panel">
+        <BreadcrumbLinks>
+            <BreadcrumbLink Display="Sensors" Link="@GetPath("/")"></BreadcrumbLink>
+            <BreadcrumbLink Display="@SharcId"></BreadcrumbLink>
+        </BreadcrumbLinks>
+    </div>
+    <div class="page-sidebar">
+        <Sidebar SharcId="@SharcId" />
+    </div>
+    <div class="page-content">
+
+        @if (sharcModel != null)
+        {
+            @* MQTT *@
+            <div class="page-section">
+                <div class="page-section-header">
+                    <span class="page-section-icon fa-solid fa-sharp fa-chart-network"></span>
+                    <span class="page-section-title">MQTT</span>
+                </div>
+                <div class="page-section-content">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td class="name">Address</td>
+                                <td class="value">@sharcModel.mqtt.Address</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Port</td>
+                                <td class="value">@sharcModel.mqtt.Port</td>
+                            </tr>
+                            <tr>
+                                <td class="name">User</td>
+                                <td class="value">@sharcModel.mqtt.User</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Annonymous</td>
+                                <td class="value">@sharcModel.mqtt.Anonymous</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @* Network *@
+            <div class="page-section">
+                <div class="page-section-header">
+                    <span class="page-section-icon fa-regular fa-sharp fa-ethernet"></span>
+                    <span class="page-section-title">Network</span>
+                </div>
+                <div class="page-section-content">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td class="name">Type</td>
+                                <td class="value">@sharcModel.net.Type</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Static</td>
+                                <td class="value">@sharcModel.net.Static</td>
+                            </tr>
+                            <tr>
+                                <td class="name">IP Address</td>
+                                <td class="value">@sharcModel.net.IpAddress</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Gateway</td>
+                                <td class="value">@sharcModel.net.Gateway</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Subnet Mask</td>
+                                <td class="value">@sharcModel.net.SubnetMask</td>
+                            </tr>
+                            <tr>
+                                <td class="name">MAC Address</td>
+                                <td class="value">@sharcModel.net.MacAddress</td>
+                            </tr>
+                            <tr>
+                                <td class="name">DNS</td>
+                                <td class="value">@sharcModel.net.DNS</td>
+                            </tr>
+                            <tr>
+                                <td class="name">LAN Fallback</td>
+                                <td class="value">@sharcModel.net.LanFallback</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Quality</td>
+                                <td class="value">@sharcModel.net.Quality</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @* Device *@
+            <div class="page-section">
+                <div class="page-section-header">
+                    <span class="page-section-icon fa-solid fa-sharp fa-server"></span>
+                    <span class="page-section-title">Device</span>
+                </div>
+                <div class="page-section-content">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td class="name">Manufacturer</td>
+                                <td class="value">@sharcModel.ver.Manufacturer</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Model</td>
+                                <td class="value">@sharcModel.ver.Model</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Serial</td>
+                                <td class="value">@sharcModel.ver.Serial</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Firmware Version</td>
+                                <td class="value">@sharcModel.ver.FirmwareVersion</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Software Version</td>
+                                <td class="value">@sharcModel.ver.SoftwareVersion</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @* Boot *@
+            <div class="page-section">
+                <div class="page-section-header">
+                    <span class="page-section-icon fa-solid fa-sharp fa-triangle-info"></span>
+                    <span class="page-section-title">Boot</span>
+                </div>
+                <div class="page-section-content">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td class="name">Power On</td>
+                                <td class="value">@sharcModel.rc.PowerOn</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Deep Sleep</td>
+                                <td class="value">@sharcModel.rc.DeepSleep</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Hard Reset</td>
+                                <td class="value">@sharcModel.rc.HardReset</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Soft Reset</td>
+                                <td class="value">@sharcModel.rc.SoftReset</td>
+                            </tr>
+                            <tr>
+                                <td class="name">Watchdog Reset</td>
+                                <td class="value">@sharcModel.rc.WatchdogReset</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@code {
+
+    private TrakHoundSharcModel sharcModel;
+
+
+    [Parameter]
+    public string SharcId { get; set; }
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        sharcModel = await Client.Api.QueryJson<TrakHoundSharcModel>($"sharc/api/{SharcId}");
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

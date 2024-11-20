@@ -1,0 +1,573 @@
+﻿@page "/sensors/{sharcId}"
+@page "/sensors/{sharcId}/analyze"
+@inherits TrakHoundComponentBase
+@layout Layout
+@using TrakHound.Requests
+@using System.Text.Json.Serialization
+
+<TrakHoundPageTitle>@GetPageTitle()</TrakHoundPageTitle>
+
+<div class="page">
+    <div class="breadcrumb-panel">
+        <BreadcrumbLinks>
+            <BreadcrumbLink Display="Sensors" Link="@GetPath("/")"></BreadcrumbLink>
+            <BreadcrumbLink Display="@SharcId"></BreadcrumbLink>
+        </BreadcrumbLinks>
+    </div>
+    <div class="page-sidebar">
+        <Sidebar SharcId="@SharcId" />
+    </div>
+    <div class="page-content">
+
+        <div class="toolbar-panel">
+            <div class="toolbar-container">
+                <RadzenDropDown TValue="string" Data="@sensorNames" @bind-Value="@selectedSensorName" Placeholder="Select Sensor.." />
+            </div>
+            <div class="toolbar-container">
+
+                @if (!loading)
+                {
+                    <button class="btn btn-primary btn-query" @onclick="QueryClicked"><span class="icon fa-solid fa-sharp fa-magnifying-glass"></span>Query</button>
+                }
+                else
+                {
+                    <button class="btn btn-primary btn-query disabled"><span class="icon fa-solid fa-sharp fa-loader spin"></span>Loading..</button>
+                }
+
+            </div>
+            <div class="toolbar-container query-type-container">
+                <RadzenDropDown TValue="QueryType" Data="@(Enum.GetValues<QueryType>())" @bind-Value="@selectedQueryType" />
+            </div>
+            <div class="toolbar-container time-range-container">
+                <TimeRangeSelection @bind-From="@from" @bind-To="@to" ShowTime="true" />
+            </div>
+            <div class="toolbar-container navigate-container">
+                <button class="btn btn-light btn-increment" @onclick="PreviousTimeRangeClicked"><span class="icon fa-solid fa-sharp fa-chevron-left"></span></button>
+                <button class="btn btn-light btn-increment" @onclick="NextTimeRangeClicked"><span class="icon fa-solid fa-sharp fa-chevron-right"></span></button>
+            </div>
+            <div class="toolbar-container preset-container">
+                <RadzenDropDown TValue="TimeRangePreset" Data="@(Enum.GetValues<TimeRangePreset>())" ValueChanged="TimeRangePresetChanged" Placeholder="Select Preset.." />
+            </div>
+
+            @switch (selectedQueryType)
+            {
+                case QueryType.Raw:
+
+                    <div class="toolbar-container take-container">
+                        <SpinEdit @bind-Value="@take" />
+                    </div>
+
+                    break;
+
+                case QueryType.Aggregate:
+
+                    <div class="toolbar-container aggregate-type-container">
+                        <RadzenDropDown TValue="TrakHoundAggregateType" Data="@(Enum.GetValues<TrakHoundAggregateType>())" @bind-Value="@selectedAggregateType" />
+                    </div>
+                    <div class="toolbar-container window-container">
+                        <SpinEdit @bind-Value="@selectedAggregateWindow" />
+                    </div>
+                    <div class="toolbar-container window-units-container">
+                        <RadzenDropDown TValue="WindowUnits" Data="@(Enum.GetValues<WindowUnits>())" @bind-Value="@selectedAggregateWindowUnits" />
+                    </div>
+
+                    break;
+            }
+
+        </div>
+
+        @if (!loading)
+        {
+            @if (resultSuccess != null)
+            {
+                var resultIcon = resultSuccess.Value ? "fa-solid fa-sharp fa-check" : "fa-solid fa-sharp fa-circle-xmark";
+                var resultClass = resultSuccess.Value ? "success" : "error";
+
+                <div class="status-panel @resultClass">
+                    <span class="status-icon @resultIcon"></span>
+                    <span class="status-message">@resultMessage</span>
+                </div>
+            }
+
+            @if (!valueTableItems.IsNullOrEmpty())
+            {
+                <div class="content-panel">
+                    <RadzenSplitter Orientation="Orientation.Vertical">
+                        <RadzenSplitterPane Min="100px">
+                            <div class="chart-panel">
+                                <RadzenChart>
+                                    <RadzenLineSeries Data="@valueTableItems" CategoryProperty="Timestamp" Title="@selectedSensorName" ValueProperty="Value" Stroke="var(--accentDark)" StrokeWidth="0.5" />
+                                    <RadzenLegend Visible="false" />
+                                    <RadzenCategoryAxis Formatter="@GetCategoryAxisLabel" Min="@resultFrom" Max="@resultTo">
+                                        <RadzenGridLines Visible="true" />
+                                    </RadzenCategoryAxis>
+                                    <RadzenValueAxis Formatter="@GetValueAxisLabel">
+                                        <RadzenGridLines Visible="true" />
+                                        <RadzenAxisTitle Text="@sensorModel?.Units" />
+                                    </RadzenValueAxis>
+                                </RadzenChart>
+                            </div>
+                        </RadzenSplitterPane>
+                        <RadzenSplitterPane Min="100px">
+                            <div class="table-panel">
+                                <RadzenDataGrid Data="@valueTableItems"
+                                                TItem="ValueTableItem"
+                                                Density="Density.Compact"
+                                                AllowVirtualization="true"
+                                                GridLines="DataGridGridLines.Vertical">
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="ValueTableItem" Property="SensorName" Title="SensorName" Width="100px" />
+                                        <RadzenDataGridColumn TItem="ValueTableItem" Property="Timestamp" Title="Timestamp" Width="180px" />
+                                        <RadzenDataGridColumn TItem="ValueTableItem" Property="Value" Title="Value" />
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </div>
+                        </RadzenSplitterPane>
+                    </RadzenSplitter>
+                </div>
+            }
+
+            if (!aggregateTableItems.IsNullOrEmpty())
+            {
+                <div class="content-panel">
+                    <RadzenSplitter Orientation="Orientation.Vertical">
+                        <RadzenSplitterPane Min="100px">
+                            <div class="chart-panel">
+                                <RadzenChart>
+                                    <RadzenLineSeries Data="@aggregateTableItems" CategoryProperty="End" Title="@selectedSensorName" ValueProperty="Value" Stroke="var(--accent)" StrokeWidth="1">
+                                        @* <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Fill="var(--accent)" Size="5" /> *@
+                                    </RadzenLineSeries>
+                                    <RadzenLegend Visible="false" />
+                                    <RadzenCategoryAxis Formatter="@GetCategoryAxisLabel" Min="@resultFrom" Max="@resultTo">
+                                        <RadzenGridLines Visible="true" />
+                                    </RadzenCategoryAxis>
+                                    <RadzenValueAxis Formatter="@GetValueAxisLabel">
+                                        <RadzenGridLines Visible="true" />
+                                        <RadzenAxisTitle Text="@sensorModel?.Units" />
+                                    </RadzenValueAxis>
+                                </RadzenChart>
+                            </div>
+                        </RadzenSplitterPane>
+                        <RadzenSplitterPane Min="100px">
+                            <div class="table-panel">
+                                <RadzenDataGrid Data="@aggregateTableItems"
+                                                TItem="AggregateTableItem"
+                                                Density="Density.Compact"
+                                                AllowVirtualization="true"
+                                                GridLines="DataGridGridLines.Vertical">
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="AggregateTableItem" Property="SensorName" Title="SensorName" Width="100px" />
+                                        <RadzenDataGridColumn TItem="AggregateTableItem" Property="Start" Title="Start" Width="180px" />
+                                        <RadzenDataGridColumn TItem="AggregateTableItem" Property="End" Title="End" Width="180px" />
+                                        <RadzenDataGridColumn TItem="AggregateTableItem" Property="Value" Title="Value" />
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </div>
+                        </RadzenSplitterPane>
+                    </RadzenSplitter>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="loading-panel">
+                <Loading Message="@loadingMessage" />
+            </div>
+        }
+
+    </div>
+</div>
+
+@code {
+
+    private TrakHoundSharcModel sharcModel;
+    private SharcSensorInformation sensorModel;
+
+    private DateTime from;
+    private DateTime to;
+    private int take = 5000;
+
+    private bool? resultSuccess;
+    private string resultMessage;
+    private int resultCount;
+    private int totalCount;
+    private DateTime resultFrom;
+    private DateTime resultTo;
+
+    private IEnumerable<ValueTableItem> valueTableItems;
+    private IEnumerable<AggregateTableItem> aggregateTableItems;
+
+    private IEnumerable<string> sensorNames;
+    private string selectedSensorName;
+
+    private QueryType selectedQueryType;
+    private TrakHoundAggregateType selectedAggregateType;
+
+    private double selectedAggregateWindow;
+    private WindowUnits selectedAggregateWindowUnits;
+
+    private bool loaded = false;
+    private bool loading = true;
+    private string loadingMessage = "Loading Sensors..";
+
+
+    enum QueryType
+    {
+        Raw,
+        Aggregate
+    }
+
+    enum TimeRangePreset
+    {
+        Today,
+        Yesterday,
+        ThisMinute,
+        LastMinute,
+        ThisHour,
+        LastHour,
+        ThisWeek,
+        LastWeek,
+        ThisMonth,
+        LastMonth,
+        ThisYear,
+        LastYear
+    }
+
+    enum WindowUnits
+    {
+        Seconds,
+        Minutes,
+        Hours,
+        Days
+    }
+
+    class ValueTableItem
+    {
+        public string SensorName { get; set; }
+        public double Value { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    class AggregateTableItem
+    {
+        public string SensorName { get; set; }
+        public double Value { get; set; }
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+    }
+
+    class SharcSensorInformation
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+
+        [JsonPropertyName("units")]
+        public string Units { get; set; }
+    }
+
+    class ValueModel
+    {
+        [JsonPropertyName("v")]
+        public double Value { get; set; }
+
+        [JsonPropertyName("t")]
+        public DateTime Timestamp { get; set; }
+    }
+
+    class AggregateWindowModel
+    {
+        [JsonPropertyName("v")]
+        public double Value { get; set; }
+
+        [JsonPropertyName("s")]
+        public DateTime Start { get; set; }
+
+        [JsonPropertyName("e")]
+        public DateTime End { get; set; }
+    }
+
+
+    [Parameter]
+    public string SharcId { get; set; }
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        from = TimeSegment.GetSegmentBottom(DateTime.Now, 3600);
+        to = from.AddHours(1);
+
+        selectedAggregateWindow = 1;
+        selectedAggregateWindowUnits = WindowUnits.Minutes;
+
+        await Load();
+    }
+
+    private async void QueryClicked()
+    {
+        await Load(true);
+    }
+
+    private async Task Load(bool forceLoad = false)
+    {
+        if (forceLoad || !loaded)
+        {
+            sharcModel = null;
+            sensorModel = null;
+            sensorNames = null;
+            valueTableItems = null;
+            aggregateTableItems = null;
+
+            resultSuccess = null;
+            resultMessage = null;
+            resultCount = 0;
+            totalCount = 0;
+
+            loaded = true;
+            loading = true;
+            loadingMessage = "Loading Sensor..";
+            await InvokeAsync(StateHasChanged);
+
+            resultFrom = from;
+            resultTo = to;
+
+            sharcModel = await Client.Api.QueryJson<TrakHoundSharcModel>($"sharc/api/{SharcId}");
+
+            sensorNames = await Client.Api.QueryJson<IEnumerable<string>>($"sharc/api/{SharcId}/io");
+            if (!sensorNames.IsNullOrEmpty())
+            {
+                if (!string.IsNullOrEmpty(selectedSensorName))
+                {
+                    sensorModel = await Client.Api.QueryJson<SharcSensorInformation>($"sharc/api/{SharcId}/io/{selectedSensorName}");
+
+                    switch (selectedQueryType)
+                    {
+                        case QueryType.Raw:
+                            await LoadRaw(resultFrom, resultTo);
+                            break;
+
+                        case QueryType.Aggregate:
+                            await LoadAggregate(resultFrom, resultTo);
+                            break;
+                    }
+                }
+            }
+
+            loading = false;
+            loadingMessage = null;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task LoadRaw(DateTime from, DateTime to)
+    {
+        var queryParameters = new Dictionary<string, string>();
+        queryParameters.Add("from", from.ToUnixTime().ToString());
+        queryParameters.Add("to", to.ToUnixTime().ToString());
+        queryParameters.Add("skip", "0");
+        queryParameters.Add("take", take.ToString());
+        queryParameters.Add("sortOrder", "-1");
+
+        var stpw = System.Diagnostics.Stopwatch.StartNew();
+        var values = await Client.Api.QueryJson<IEnumerable<ValueModel>>($"sharc/api/{SharcId}/io/{selectedSensorName}/values", queryParameters);
+        stpw.Stop();
+
+        if (!values.IsNullOrEmpty())
+        {
+            queryParameters = new Dictionary<string, string>();
+            queryParameters.Add("from", from.ToUnixTime().ToString());
+            queryParameters.Add("to", to.ToUnixTime().ToString());
+
+            resultSuccess = true;
+            resultCount = values.Count();
+            totalCount = (await Client.Api.QueryString($"sharc/api/{SharcId}/io/{selectedSensorName}/count", queryParameters)).ToInt();
+            resultMessage = $"({resultCount} / {totalCount}) Results Found Successfully in {stpw.ElapsedMilliseconds}ms";
+
+            var valueItems = new List<ValueTableItem>();
+            foreach (var value in values.OrderByDescending(o => o.Timestamp))
+            {
+                var valueItem = new ValueTableItem();
+                valueItem.SensorName = selectedSensorName;
+                valueItem.Value = value.Value;
+                valueItem.Timestamp = value.Timestamp.ToUniversalTime(); // Convert to UTC
+                valueItems.Add(valueItem);
+            }
+
+            valueTableItems = valueItems;
+        }
+        else
+        {
+            resultSuccess = false;
+            resultMessage = $"No Results Found in {stpw.ElapsedMilliseconds}ms";
+        }
+    }
+
+    private async Task LoadAggregate(DateTime from, DateTime to)
+    {
+        var queryParameters = new Dictionary<string, string>();
+        queryParameters.Add("from", from.ToUnixTime().ToString());
+        queryParameters.Add("to", to.ToUnixTime().ToString());
+        queryParameters.Add("aggregateType", selectedAggregateType.ToString());
+        queryParameters.Add("aggregateWindow", GetWindow(selectedAggregateWindow, selectedAggregateWindowUnits));
+
+        var stpw = System.Diagnostics.Stopwatch.StartNew();
+        var values = await Client.Api.QueryJson<IEnumerable<AggregateWindowModel>>($"sharc/api/{SharcId}/io/{selectedSensorName}/aggregate", queryParameters);
+        stpw.Stop();
+
+        if (!values.IsNullOrEmpty())
+        {
+            resultSuccess = true;
+            resultCount = values.Count();
+            resultMessage = $"({resultCount}) Results Found Successfully in {stpw.ElapsedMilliseconds}ms";
+
+            var valueItems = new List<AggregateTableItem>();
+            foreach (var value in values.OrderByDescending(o => o.End))
+            {
+                var valueItem = new AggregateTableItem();
+                valueItem.SensorName = selectedSensorName;
+                valueItem.Value = value.Value;
+                valueItem.Start = value.Start.ToUniversalTime(); // Convert to UTC
+                valueItem.End = value.End.ToUniversalTime(); // Convert to UTC
+                valueItems.Add(valueItem);
+            }
+
+            aggregateTableItems = valueItems;
+        }
+        else
+        {
+            resultSuccess = false;
+            resultMessage = $"No Results Found in {stpw.ElapsedMilliseconds}ms";
+        }
+    }
+
+
+    private async void PreviousTimeRangeClicked()
+    {
+        var duration = to - from;
+        from = from.Subtract(duration);
+        to = to.Subtract(duration);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void NextTimeRangeClicked()
+    {
+        var duration = to - from;
+        from = from.Add(duration);
+        to = to.Add(duration);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void TimeRangePresetChanged(TimeRangePreset preset)
+    {
+        switch (preset)
+        {
+            case TimeRangePreset.Today:
+                from = DateTime.Today;
+                to = from.AddDays(1);
+                break;
+
+            case TimeRangePreset.Yesterday:
+                from = DateTime.Today.AddDays(-1);
+                to = from.AddDays(1);
+                break;
+
+            case TimeRangePreset.ThisMinute:
+                from = TimeSegment.GetSegmentBottom(DateTime.Now, 60);
+                to = from.AddMinutes(1);
+                break;
+
+            case TimeRangePreset.LastMinute:
+                from = TimeSegment.GetSegmentBottom(DateTime.Now, 60).AddMinutes(-1);
+                to = from.AddMinutes(1);
+                break;
+
+            case TimeRangePreset.ThisHour:
+                from = TimeSegment.GetSegmentBottom(DateTime.Now, 3600);
+                to = from.AddHours(1);
+                break;
+
+            case TimeRangePreset.LastHour:
+                from = TimeSegment.GetSegmentBottom(DateTime.Now, 3600).AddHours(-1);
+                to = from.AddHours(1);
+                break;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+
+    private string GetPageTitle()
+    {
+        return $"SHARC - {SharcId}";
+    }
+
+    private static string GetWindow(double value, WindowUnits units)
+    {
+        switch (units)
+        {
+            case WindowUnits.Seconds: return $"{value}s";
+            case WindowUnits.Minutes: return $"{value}m";
+            case WindowUnits.Hours: return $"{value}h";
+            case WindowUnits.Days: return $"{value}d";
+        }
+
+        return null;
+    }
+
+    private string GetValueAxisLabel(object value)
+    {
+        return ((double)value).ToString("N2");
+    }
+
+    private string GetCategoryAxisLabel(object value)
+    {
+        var duration = resultTo - resultFrom;
+
+        var timestamp = ((DateTime)value);
+
+        if (duration > TimeSpan.FromDays(5))
+        {
+            return timestamp.ToShortDateString();
+        }
+        else if (duration > TimeSpan.FromDays(1))
+        {
+            return timestamp.ToString("ddd h tt");
+        }
+        else if (duration > TimeSpan.FromHours(1))
+        {
+            return timestamp.ToString("h:mm tt");
+        }
+        else
+        {
+            return timestamp.ToString("h:mm:ss tt");
+        }
+
+        return timestamp.ToString();
+    }
+
+    private object GetCategoryAxisStep()
+    {
+        var duration = resultTo - resultFrom;
+
+        if (duration > TimeSpan.FromDays(1))
+        {
+            return TimeSpan.FromHours(12);
+        }
+        else if (duration > TimeSpan.FromHours(1))
+        {
+            return TimeSpan.FromHours(1);
+        }
+        else
+        {
+            return TimeSpan.FromMinutes(10);
+        }
+
+        return TimeSpan.FromHours(1);
+    }
+
+}

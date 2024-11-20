@@ -3,17 +3,13 @@
 
 <div class="sensors-layout">
     <div class="sensors-layout-sidebar">
-        <NavLink href="/" class="btn btn-command btn-navigation">
+        <NavLink Match="NavLinkMatch.Prefix" href="/" class="btn btn-command btn-navigation">
             <span class="icon fa-solid fa-sharp fa-chart-mixed"></span>
             <span class="text">Analyze</span>
         </NavLink>
         <NavLink Match="NavLinkMatch.Prefix" href="information" class="btn btn-command btn-navigation">
             <span class="icon fa-regular fa-sharp fa-circle-info"></span>
             <span class="text">Info</span>
-        </NavLink>
-        <NavLink Match="NavLinkMatch.Prefix" href="configuration" class="btn btn-command btn-navigation">
-            <span class="icon fa-solid fa-sharp fa-gear"></span>
-            <span class="text">Config</span>
         </NavLink>
     </div>
     <div class="sensors-layout-content">

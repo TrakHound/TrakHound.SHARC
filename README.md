@@ -10,15 +10,15 @@ View a live running demo at:
 ### Query Raw Values
 Query Raw sensor values using the **Raw** query type. This displays each data point within the selected time range.
 
-![IMAGE](img/Screenshot 2024-11-21 141008.png)
+![IMAGE](https://raw.githubusercontent.com/TrakHound/TrakHound.SHARC/refs/heads/main/img/Screenshot%202024-11-21%20140921.png)
 
 ### Query Aggregate Values
 Query Aggregate sensor values using the **Aggregate** query type. This displays data using the selected aggregate type (Mean, Median, Max, Min) with the selected Aggregate Window.
 
-![IMAGE](img/Screenshot 2024-11-21 140921.png)
+![IMAGE](https://raw.githubusercontent.com/TrakHound/TrakHound.SHARC/refs/heads/main/img/Screenshot 2024-11-21 140921.png)
 
 ### View Live Values
-![IMAGE](img/Screenshot 2024-11-21 141102.png)
+![IMAGE](https://raw.githubusercontent.com/TrakHound/TrakHound.SHARC/refs/heads/main/img/Screenshot 2024-11-21 141102.png)
 
 ## TrakHound Packages
 <table>

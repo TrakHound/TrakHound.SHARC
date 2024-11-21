@@ -11,11 +11,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+		<PackageReference Include="TrakHound.Debug.Apps" Version="0.1.2.10" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\TrakHound\libraries\TrakHound.Debug.Apps\TrakHound.Debug.Apps.csproj" />
 	  <ProjectReference Include="..\SHARC.TrakHound\SHARC.TrakHound.csproj" />
 	</ItemGroup>
 

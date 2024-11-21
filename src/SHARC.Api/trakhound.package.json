@@ -4,6 +4,8 @@
   "metadata": {
     "publisher": "TrakHound Inc.",
     "description": "Access Data from SHARC sensors",
+    "repository": "https://github.com/TrakHound/TrakHound.SHARC",
+    "repositoryDirectory": "src/SHARC.Api",
     ".image": "https://www.trakhound.com/management/static/sharc-logo",
     ".defaultRoute": "sharc/api"
   }

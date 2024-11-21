@@ -4,6 +4,8 @@
   "metadata": {
     "publisher": "TrakHound Inc.",
     "description": "View & Manage SHARC sensors",
+    "repository": "https://github.com/TrakHound/TrakHound.SHARC",
+    "repositoryDirectory": "src/SHARC.App",
     ".image": "https://www.trakhound.com/management/static/sharc-logo",
     ".defaultRoute": "sharc"
   }

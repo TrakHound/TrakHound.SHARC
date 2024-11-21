@@ -4,6 +4,8 @@
   "metadata": {
     "publisher": "TrakHound Inc.",
     "description": "Manage Collection from SHARC sensors",
+    "repository": "https://github.com/TrakHound/TrakHound.SHARC",
+    "repositoryDirectory": "src/SHARC.Collection.Api",
     ".image": "https://www.trakhound.com/management/static/sharc-logo",
     ".defaultRoute": "sharc/collection/api",
     ".defaultVolumeId": "sharc.collection"

@@ -6,12 +6,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\TrakHound\libraries\TrakHound.Debug.AspNetCore\TrakHound.Debug.AspNetCore.csproj" />
-		<ProjectReference Include="..\SHARC.TrakHound\SHARC.TrakHound.csproj" />
+		<PackageReference Include="TrakHound.Debug.AspNetCore" Version="0.1.2.10" />
+		<PackageReference Include="DocumentFormat.OpenXml" Version="3.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DocumentFormat.OpenXml" Version="3.1.0" />
+		<ProjectReference Include="..\SHARC.TrakHound\SHARC.TrakHound.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -1,0 +1,1 @@
+trakhound-cli packages publish

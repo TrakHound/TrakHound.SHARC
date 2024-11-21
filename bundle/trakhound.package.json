@@ -1,0 +1,27 @@
+﻿{
+  "id": "SHARC.Bundle",
+  "category": "bundle",
+  "metadata": {
+    "publisher": "TrakHound Inc.",
+    "description": "Collect & View Data from SHARC Sensors",
+    ".image": "https://www.trakhound.com/management/static/sharc-logo"
+  },
+  "dependencies": [
+    {
+      "id": "SHARC.App",
+      "version": "*"
+    },
+    {
+      "id": "SHARC.Api",
+      "version": "*"
+    },
+    {
+      "id": "SHARC.Collection.Api",
+      "version": "*"
+    },
+    {
+      "id": "SHARC.Collection.Service",
+      "version": "*"
+    }
+  ]
+}

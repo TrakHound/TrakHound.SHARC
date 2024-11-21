@@ -1,4 +1,7 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿// Copyright (c) 2024 TrakHound Inc., All Rights Reserved.
+// TrakHound Inc. licenses this file to you under the MIT license.
+
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml;
 using X14 = DocumentFormat.OpenXml.Office2010.Excel;

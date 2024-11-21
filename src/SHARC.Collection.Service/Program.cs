@@ -1,4 +1,7 @@
-﻿using TrakHound;
+﻿// Copyright (c) 2024 TrakHound Inc., All Rights Reserved.
+// TrakHound Inc. licenses this file to you under the MIT license.
+
+using TrakHound;
 using TrakHound.Clients;
 using TrakHound.Logging;
 using TrakHound.Services;
@@ -16,7 +19,6 @@ namespace SHARC.Collection
 
             // Create new TrakHoundClient based on the Instance BaseUrl and Router
             var clientConfiguration = new TrakHoundHttpClientConfiguration("localhost", 8472);
-            //var clientConfiguration = new TrakHoundHttpClientConfiguration("localhost", 8475);
 
             var client = new TrakHoundHttpClient(clientConfiguration, null);
 

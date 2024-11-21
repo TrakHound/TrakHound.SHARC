@@ -1,4 +1,7 @@
-﻿using TrakHound;
+﻿// Copyright (c) 2024 TrakHound Inc., All Rights Reserved.
+// TrakHound Inc. licenses this file to you under the MIT license.
+
+using TrakHound;
 using TrakHound.Entities;
 
 namespace SHARC.Collection

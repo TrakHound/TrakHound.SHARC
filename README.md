@@ -1,24 +1,22 @@
 # TrakHound.SHARC
-Collect & View Data from SHARC Sensors. https://www.mriiot.com/sharc
+Collect & View Data from SHARC Sensors. 
+
+SHARC: https://www.mriiot.com/sharc
+
+TrakHound: https://github.com/TrakHound/TrakHound
 
 ## Live Demo
 View a live running demo at:
 - https://www.trakhound.com/demo/sharc
 - https://www.trakhound.com/demo/sharc/sensors/48e7290b118c/analyze
 
-## UI
-### Query Raw Values
-Query Raw sensor values using the **Raw** query type. This displays each data point within the selected time range.
-
-![IMAGE](https://raw.githubusercontent.com/TrakHound/TrakHound.SHARC/refs/heads/main/img/Screenshot%202024-11-21%20140921.png)
-
-### Query Aggregate Values
-Query Aggregate sensor values using the **Aggregate** query type. This displays data using the selected aggregate type (Mean, Median, Max, Min) with the selected Aggregate Window.
-
-![IMAGE](https://raw.githubusercontent.com/TrakHound/TrakHound.SHARC/refs/heads/main/img/Screenshot 2024-11-21 140921.png)
-
-### View Live Values
-![IMAGE](https://raw.githubusercontent.com/TrakHound/TrakHound.SHARC/refs/heads/main/img/Screenshot 2024-11-21 141102.png)
+## Get Started
+- Install TrakHound Instance : https://github.com/TrakHound/TrakHound/releases/download/v0.1.3/trakhound-instance-0.1.3-install.exe
+- Browse to TrakHound Admin UI : http://localhost:8472/_admin/packages
+- Install the **SHARC.Bundle** package
+- Browse to SHARC.App : http://localhost:8472/sharc
+- Click **Add Sensor**, enter MQTT Broker and click **Test Connection**, select SHARC from list
+- Click on **View** in sensors table
 
 ## TrakHound Packages
 <table>
@@ -58,59 +56,17 @@ Query Aggregate sensor values using the **Aggregate** query type. This displays 
     </tbody>
 </table>
 
-## SHARC.Mqtt
-Used to subscribe to an MQTT Broker to read SHARC data
+## User Interface
+### Query Raw Values
+Query Raw sensor values using the **Raw** query type. This displays each data point within the selected time range.
 
-```c#
-using SHARC.Mqtt;
+![IMAGE](https://raw.githubusercontent.com/TrakHound/TrakHound.SHARC/refs/heads/main/img/Screenshot%202024-11-21%20140921.png)
 
-var client = new SharcMqttClient("mosquitto.spb.mtcup.org", 1884, "409151d72b34");
-client.Connected += (s, args) => Console.WriteLine("MQTT Broker Connected");
-client.AvailabilityReceived += (s, p) =>
-{
-    Console.WriteLine(p);
-};
-client.BootCounterReceived += (s, p) =>
-{
-    Console.WriteLine(p);
-};
-client.NetworkInterfaceReceived += (s, p) =>
-{
-    Console.WriteLine(p);
-};
-client.DeviceInformationReceived += (s, p) =>
-{
-    Console.WriteLine(p);
-};
-client.MqttInformationReceived += (s, p) =>
-{
-    Console.WriteLine(p);
-};
-client.SensorConfigurationReceived += (s, p) =>
-{
-    Console.WriteLine(p);
-};
-client.DistinctSensorValueReceived += (s, p) =>
-{
-    Console.WriteLine(p);
-};
-client.AggregateSensorValueReceived += (s, p) =>
-{
-    Console.WriteLine(p);
-};
-client.AggregateCalibratedConvertedSensorValueReceived += (s, p) =>
-{
-    Console.WriteLine(p);
-};
-client.UserDataReceived += (s, p) =>
-{
-    Console.WriteLine(p);
-};
+### Query Aggregate Values
+Query Aggregate sensor values using the **Aggregate** query type. This displays data using the selected aggregate type (Mean, Median, Max, Min) with the selected Aggregate Window.
 
-client.Start();
+![IMAGE](https://raw.githubusercontent.com/TrakHound/TrakHound.SHARC/refs/heads/main/img/Screenshot%202024-11-21%20140921.png)
 
-Console.WriteLine("Started");
-Console.ReadLine();
+### View Live Values
+![IMAGE](https://raw.githubusercontent.com/TrakHound/TrakHound.SHARC/refs/heads/main/img/Screenshot%202024-11-21%20141102.png)
 
-client.Stop();
-```

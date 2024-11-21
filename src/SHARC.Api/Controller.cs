@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text;
+using System.Text.Json.Serialization;
 using TrakHound;
 using TrakHound.Api;
 using TrakHound.Requests;
@@ -8,6 +9,9 @@ namespace SHARC.Api
 {
     public partial class Controller : TrakHoundApiController
     {
+        private const int _defaultTake = 5000;
+
+
         class SharcSensorInformation
         {
             [JsonPropertyName("name")]
@@ -133,7 +137,7 @@ namespace SHARC.Api
             [FromQuery] DateTime from,
             [FromQuery] DateTime to,
             [FromQuery] int skip = 0,
-            [FromQuery] int take = 1000,
+            [FromQuery] int take = _defaultTake,
             [FromQuery] int sortOrder = (int)SortOrder.Ascending
             )
         {
@@ -150,16 +154,16 @@ namespace SHARC.Api
                         var observations = (await Client.Entities.GetObservationValues(sensorObj.Path, from, to, skip, take, (SortOrder)sortOrder))?.GetValueOrDefault(sensorObj.Path);
                         if (!observations.IsNullOrEmpty())
                         {
-                            var valueResponses = new List<ValueResponse>(observations.Count());
+                            var results = new List<ValueResponse>(observations.Count());
                             foreach (var observation in observations)
                             {
-                                var valueResponse = new ValueResponse();
-                                valueResponse.Value = observation.Value.ToDouble();
-                                valueResponse.Timestamp = observation.Timestamp;
-                                valueResponses.Add(valueResponse);
+                                var result = new ValueResponse();
+                                result.Value = observation.Value.ToDouble();
+                                result.Timestamp = observation.Timestamp;
+                                results.Add(result);
                             }
 
-                            return Ok(valueResponses);
+                            return Ok(results);
                         }
                         else
                         {
@@ -212,8 +216,8 @@ namespace SHARC.Api
                             foreach (var x in aggregateWindows)
                             {
                                 var result = new AggregateResponse();
-                                result.Start = x.Start.ToDateTime();
-                                result.End = x.End.ToDateTime();
+                                result.Start = x.Start.ToLocalDateTime();
+                                result.End = x.End.ToLocalDateTime();
                                 result.Value = x.Value;
                                 results.Add(result);
                             }
@@ -314,6 +318,344 @@ namespace SHARC.Api
                         }
                     }
                 }
+            }
+
+            return null;
+        }
+
+        [TrakHoundApiQuery("{sharcId}/io/{sensorName}/values/excel")]
+        public async Task<TrakHoundApiResponse> DownloadSensorValuesExcel(
+            [FromRoute] string sharcId,
+            [FromRoute] string sensorName,
+            [FromQuery] DateTime from,
+            [FromQuery] DateTime to,
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = _defaultTake,
+            [FromQuery] int sortOrder = (int)SortOrder.Ascending
+            )
+        {
+            if (!string.IsNullOrEmpty(sharcId) && !string.IsNullOrEmpty(sensorName))
+            {
+                var sharcObj = await Client.Entities.GetObject($"type=SHARC&meta@SharcId={sharcId}");
+                if (sharcObj != null)
+                {
+                    var sensorPath = TrakHoundPath.Combine(sharcObj.Path, "io", sensorName);
+
+                    var sensorObj = await Client.Entities.GetObject(sensorPath);
+                    if (sensorObj != null)
+                    {
+                        var observations = (await Client.Entities.GetObservationValues(sensorObj.Path, from, to, skip, take, (SortOrder)sortOrder))?.GetValueOrDefault(sensorObj.Path);
+                        if (!observations.IsNullOrEmpty())
+                        {
+                            var results = new List<ValueResponse>(observations.Count());
+                            foreach (var observation in observations)
+                            {
+                                var result = new ValueResponse();
+                                result.Value = observation.Value.ToDouble();
+                                result.Timestamp = observation.Timestamp;
+                                results.Add(result);
+                            }
+
+                            var filename = $"SHARC-{sharcId}-{sensorName}-values-{UnixDateTime.Now}.xlsx";
+
+                            var outputStream = CreateExcelFile(results);
+                            if (outputStream != null)
+                            {
+                                return File(outputStream, "application/vnd.ms-excel", filename);
+                            }
+                            else
+                            {
+                                return InternalError();
+                            }
+                        }
+                        else
+                        {
+                            return NotFound($"No Sensor Values Found between '{from.ToString("o")}' and '{to.ToString("o")}'");
+                        }
+                    }
+                    else
+                    {
+                        return NotFound($"SHARC Sensor Not Found : ID = {sharcId} : SensorName = {sensorName}");
+                    }
+                }
+                else
+                {
+                    return NotFound($"SHARC Not Found : ID = {sharcId}");
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [TrakHoundApiQuery("{sharcId}/io/{sensorName}/aggregate/excel")]
+        public async Task<TrakHoundApiResponse> DownloadSensorAggregatesExcel(
+            [FromRoute] string sharcId,
+            [FromRoute] string sensorName,
+            [FromQuery] DateTime from,
+            [FromQuery] DateTime to,
+            [FromQuery] string aggregateType,
+            [FromQuery] string aggregateWindow
+            )
+        {
+            if (!string.IsNullOrEmpty(sharcId) && !string.IsNullOrEmpty(sensorName))
+            {
+                var sharcObj = await Client.Entities.GetObject($"type=SHARC&meta@SharcId={sharcId}");
+                if (sharcObj != null)
+                {
+                    var sensorPath = TrakHoundPath.Combine(sharcObj.Path, "io", sensorName);
+
+                    var sensorObj = await Client.Entities.GetObject(sensorPath);
+                    if (sensorObj != null)
+                    {
+                        var type = aggregateType.ConvertEnum<TrakHoundAggregateType>();
+                        var window = (long)aggregateWindow.ToTimeSpan().TotalNanoseconds;
+
+                        var aggregateWindows = await Client.System.Entities.Objects.Observation.AggregateWindowByObject(sensorPath, type, window, from.ToUnixTime(), to.ToUnixTime());
+                        if (!aggregateWindows.IsNullOrEmpty())
+                        {
+                            var results = new List<AggregateResponse>();
+                            foreach (var x in aggregateWindows)
+                            {
+                                var result = new AggregateResponse();
+                                result.Start = x.Start.ToDateTime();
+                                result.End = x.End.ToDateTime();
+                                result.Value = x.Value;
+                                results.Add(result);
+                            }
+
+                            var filename = $"SHARC-{sharcId}-{sensorName}-aggregate-{type.ToString().ToLower()}-{UnixDateTime.Now}.xlsx";
+
+                            var outputStream = CreateExcelFile(results);
+                            if (outputStream != null)
+                            {
+                                return File(outputStream, "application/vnd.ms-excel", filename);
+                            }
+                            else
+                            {
+                                return InternalError();
+                            }
+                        }
+                        else
+                        {
+                            return NotFound($"No Sensor Values Found between '{from.ToString("o")}' and '{to.ToString("o")}'");
+                        }
+                    }
+                    else
+                    {
+                        return NotFound($"SHARC Sensor Not Found : ID = {sharcId} : SensorName = {sensorName}");
+                    }
+                }
+                else
+                {
+                    return NotFound($"SHARC Not Found : ID = {sharcId}");
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+
+        [TrakHoundApiQuery("{sharcId}/io/{sensorName}/values/csv")]
+        public async Task<TrakHoundApiResponse> DownloadSensorValuesCsv(
+            [FromRoute] string sharcId,
+            [FromRoute] string sensorName,
+            [FromQuery] DateTime from,
+            [FromQuery] DateTime to,
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = _defaultTake,
+            [FromQuery] int sortOrder = (int)SortOrder.Ascending
+            )
+        {
+            if (!string.IsNullOrEmpty(sharcId) && !string.IsNullOrEmpty(sensorName))
+            {
+                var sharcObj = await Client.Entities.GetObject($"type=SHARC&meta@SharcId={sharcId}");
+                if (sharcObj != null)
+                {
+                    var sensorPath = TrakHoundPath.Combine(sharcObj.Path, "io", sensorName);
+
+                    var sensorObj = await Client.Entities.GetObject(sensorPath);
+                    if (sensorObj != null)
+                    {
+                        var observations = (await Client.Entities.GetObservationValues(sensorObj.Path, from, to, skip, take, (SortOrder)sortOrder))?.GetValueOrDefault(sensorObj.Path);
+                        if (!observations.IsNullOrEmpty())
+                        {
+                            var x = 0;
+                            var results = new ValueResponse[observations.Count()];
+                            foreach (var o in observations)
+                            {
+                                var result = new ValueResponse();
+                                result.Value = o.Value.ToDouble();
+                                result.Timestamp = o.Timestamp;
+                                results[x] = result;
+                                x++;
+                            }
+
+                            var filename = $"SHARC-{sharcId}-{sensorName}-values-{UnixDateTime.Now}.csv";
+
+                            var csvBuilder = new StringBuilder();
+                            for (var i = 0; i < results.Length; i++)
+                            {
+                                csvBuilder.AppendLine(Csv.ToCsv(results[i]));
+                            }
+
+                            var outputStream = csvBuilder.ToString().ToUtf8Bytes();
+                            if (outputStream != null)
+                            {
+                                return File(outputStream, "text/csv", filename);
+                            }
+                            else
+                            {
+                                return InternalError();
+                            }
+                        }
+                        else
+                        {
+                            return NotFound($"No Sensor Values Found between '{from.ToString("o")}' and '{to.ToString("o")}'");
+                        }
+                    }
+                    else
+                    {
+                        return NotFound($"SHARC Sensor Not Found : ID = {sharcId} : SensorName = {sensorName}");
+                    }
+                }
+                else
+                {
+                    return NotFound($"SHARC Not Found : ID = {sharcId}");
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [TrakHoundApiQuery("{sharcId}/io/{sensorName}/aggregate/csv")]
+        public async Task<TrakHoundApiResponse> DownloadSensorAggregatesCsv(
+            [FromRoute] string sharcId,
+            [FromRoute] string sensorName,
+            [FromQuery] DateTime from,
+            [FromQuery] DateTime to,
+            [FromQuery] string aggregateType,
+            [FromQuery] string aggregateWindow
+            )
+        {
+            if (!string.IsNullOrEmpty(sharcId) && !string.IsNullOrEmpty(sensorName))
+            {
+                var sharcObj = await Client.Entities.GetObject($"type=SHARC&meta@SharcId={sharcId}");
+                if (sharcObj != null)
+                {
+                    var sensorPath = TrakHoundPath.Combine(sharcObj.Path, "io", sensorName);
+
+                    var sensorObj = await Client.Entities.GetObject(sensorPath);
+                    if (sensorObj != null)
+                    {
+                        var type = aggregateType.ConvertEnum<TrakHoundAggregateType>();
+                        var window = (long)aggregateWindow.ToTimeSpan().TotalNanoseconds;
+
+                        var aggregateWindows = await Client.System.Entities.Objects.Observation.AggregateWindowByObject(sensorPath, type, window, from.ToUnixTime(), to.ToUnixTime());
+                        if (!aggregateWindows.IsNullOrEmpty())
+                        {
+                            var x = 0;
+                            var results = new AggregateResponse[aggregateWindows.Count()];
+                            foreach (var o in aggregateWindows)
+                            {
+                                var result = new AggregateResponse();
+                                result.Start = o.Start.ToDateTime();
+                                result.End = o.End.ToDateTime();
+                                result.Value = o.Value;
+                                results[x] = result;
+                                x++;
+                            }
+
+                            var filename = $"SHARC-{sharcId}-{sensorName}-aggregate-{type.ToString().ToLower()}-{UnixDateTime.Now}.csv";
+
+                            var csvBuilder = new StringBuilder();
+                            for (var i = 0; i < results.Length; i++)
+                            {
+                                csvBuilder.AppendLine(Csv.ToCsv(results[i]));
+                            }
+
+                            var outputStream = csvBuilder.ToString().ToUtf8Bytes();
+                            if (outputStream != null)
+                            {
+                                return File(outputStream, "text/csv", filename);
+                            }
+                            else
+                            {
+                                return InternalError();
+                            }
+                        }
+                        else
+                        {
+                            return NotFound($"No Sensor Values Found between '{from.ToString("o")}' and '{to.ToString("o")}'");
+                        }
+                    }
+                    else
+                    {
+                        return NotFound($"SHARC Sensor Not Found : ID = {sharcId} : SensorName = {sensorName}");
+                    }
+                }
+                else
+                {
+                    return NotFound($"SHARC Not Found : ID = {sharcId}");
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+
+        private static Stream CreateExcelFile(IEnumerable<ValueResponse> models)
+        {
+            if (!models.IsNullOrEmpty())
+            {
+                try
+                {
+                    var memoryStream = new MemoryStream();
+
+                    // Create new Excel Document
+                    using (var document = ExcelSpreadsheet.Create(memoryStream))
+                    {
+                        // Add Sheet to Excel Document
+                        ExcelSpreadsheet.CreateExcelSpreadsheet(models, document, "SHARC-Data", "sharcdata");
+                        document.Save();
+                    }
+
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    return memoryStream;
+                }
+                catch { }
+            }
+
+            return null;
+        }
+
+        private static Stream CreateExcelFile(IEnumerable<AggregateResponse> models)
+        {
+            if (!models.IsNullOrEmpty())
+            {
+                try
+                {
+                    var memoryStream = new MemoryStream();
+
+                    // Create new Excel Document
+                    using (var document = ExcelSpreadsheet.Create(memoryStream))
+                    {
+                        // Add Sheet to Excel Document
+                        ExcelSpreadsheet.CreateExcelSpreadsheet(models, document, "SHARC-Data", "sharcdata");
+                        document.Save();
+                    }
+
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    return memoryStream;
+                }
+                catch { }
             }
 
             return null;

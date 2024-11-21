@@ -8,7 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRadzenComponents();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-var clientConfiguration = new TrakHoundHttpClientConfiguration("localhost", 8475);
+var clientConfiguration = new TrakHoundHttpClientConfiguration("www.trakhound.com", 443, "demo", true);
+//var clientConfiguration = new TrakHoundHttpClientConfiguration("localhost", 8472);
 
 var clientProvider = new TrakHoundHttpClientProvider(clientConfiguration);
 builder.Services.AddSingleton<ITrakHoundClientProvider>(clientProvider);

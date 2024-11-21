@@ -39,7 +39,7 @@
                 <RadzenDropDown TValue="QueryType" Data="@(Enum.GetValues<QueryType>())" @bind-Value="@selectedQueryType" />
             </div>
             <div class="toolbar-container time-range-container">
-                <TimeRangeSelection @bind-From="@from" @bind-To="@to" ShowTime="true" />
+                <TimeRangeSelection @bind-From="@from" @bind-To="@to" ShowTime="true" DateTimeKind="DateTimeKind.Local" />
             </div>
             <div class="toolbar-container navigate-container">
                 <button class="btn btn-light btn-increment" @onclick="PreviousTimeRangeClicked"><span class="icon fa-solid fa-sharp fa-chevron-left"></span></button>
@@ -109,18 +109,24 @@
                             </div>
                         </RadzenSplitterPane>
                         <RadzenSplitterPane Min="100px">
-                            <div class="table-panel">
-                                <RadzenDataGrid Data="@valueTableItems"
-                                                TItem="ValueTableItem"
-                                                Density="Density.Compact"
-                                                AllowVirtualization="true"
-                                                GridLines="DataGridGridLines.Vertical">
-                                    <Columns>
-                                        <RadzenDataGridColumn TItem="ValueTableItem" Property="SensorName" Title="SensorName" Width="100px" />
-                                        <RadzenDataGridColumn TItem="ValueTableItem" Property="Timestamp" Title="Timestamp" Width="180px" />
-                                        <RadzenDataGridColumn TItem="ValueTableItem" Property="Value" Title="Value" />
-                                    </Columns>
-                                </RadzenDataGrid>
+                            <div class="results-panel">
+                                <div class="results-toolbar-panel">
+                                    <a href="@GetApiLink()" class="btn btn-light" target="_blank"><span class="icon fa-solid fa-sharp fa-code"></span>API</a>
+                                    <a href="@GetDownloadExcelLink()" class="btn btn-light" target="_blank"><span class="icon fa-solid fa-sharp fa-down-to-line"></span>Download Excel</a>
+                                    <a href="@GetDownloadCsvLink()" class="btn btn-light" target="_blank"><span class="icon fa-solid fa-sharp fa-down-to-line"></span>Download CSV</a>
+                                </div>
+                                <div class="results-table-panel">
+                                    <RadzenDataGrid Data="@valueTableItems"
+                                                    TItem="ValueTableItem"
+                                                    Density="Density.Compact"
+                                                    AllowVirtualization="true"
+                                                    GridLines="DataGridGridLines.Vertical">
+                                        <Columns>
+                                            <RadzenDataGridColumn TItem="ValueTableItem" Property="Timestamp" Title="Timestamp" Width="180px" />
+                                            <RadzenDataGridColumn TItem="ValueTableItem" Property="Value" Title="Value" />
+                                        </Columns>
+                                    </RadzenDataGrid>
+                                </div>
                             </div>
                         </RadzenSplitterPane>
                     </RadzenSplitter>
@@ -134,9 +140,7 @@
                         <RadzenSplitterPane Min="100px">
                             <div class="chart-panel">
                                 <RadzenChart>
-                                    <RadzenLineSeries Data="@aggregateTableItems" CategoryProperty="End" Title="@selectedSensorName" ValueProperty="Value" Stroke="var(--accent)" StrokeWidth="1">
-                                        @* <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Fill="var(--accent)" Size="5" /> *@
-                                    </RadzenLineSeries>
+                                    <RadzenLineSeries Data="@aggregateTableItems" CategoryProperty="End" Title="@selectedSensorName" ValueProperty="Value" Stroke="var(--accent)" StrokeWidth="1"/>
                                     <RadzenLegend Visible="false" />
                                     <RadzenCategoryAxis Formatter="@GetCategoryAxisLabel" Min="@resultFrom" Max="@resultTo">
                                         <RadzenGridLines Visible="true" />
@@ -149,19 +153,25 @@
                             </div>
                         </RadzenSplitterPane>
                         <RadzenSplitterPane Min="100px">
-                            <div class="table-panel">
-                                <RadzenDataGrid Data="@aggregateTableItems"
-                                                TItem="AggregateTableItem"
-                                                Density="Density.Compact"
-                                                AllowVirtualization="true"
-                                                GridLines="DataGridGridLines.Vertical">
-                                    <Columns>
-                                        <RadzenDataGridColumn TItem="AggregateTableItem" Property="SensorName" Title="SensorName" Width="100px" />
-                                        <RadzenDataGridColumn TItem="AggregateTableItem" Property="Start" Title="Start" Width="180px" />
-                                        <RadzenDataGridColumn TItem="AggregateTableItem" Property="End" Title="End" Width="180px" />
-                                        <RadzenDataGridColumn TItem="AggregateTableItem" Property="Value" Title="Value" />
-                                    </Columns>
-                                </RadzenDataGrid>
+                            <div class="results-panel">
+                                <div class="results-toolbar-panel">
+                                    <a href="@GetApiLink()" class="btn btn-light" target="_blank"><span class="icon fa-solid fa-sharp fa-code"></span>API</a>
+                                    <a href="@GetDownloadExcelLink()" class="btn btn-light" target="_blank"><span class="icon fa-solid fa-sharp fa-down-to-line"></span>Download Excel</a>
+                                    <a href="@GetDownloadCsvLink()" class="btn btn-light" target="_blank"><span class="icon fa-solid fa-sharp fa-down-to-line"></span>Download CSV</a>
+                                </div>
+                                <div class="results-table-panel">
+                                    <RadzenDataGrid Data="@aggregateTableItems"
+                                                    TItem="AggregateTableItem"
+                                                    Density="Density.Compact"
+                                                    AllowVirtualization="true"
+                                                    GridLines="DataGridGridLines.Vertical">
+                                        <Columns>
+                                            <RadzenDataGridColumn TItem="AggregateTableItem" Property="Start" Title="Start" Width="180px" />
+                                            <RadzenDataGridColumn TItem="AggregateTableItem" Property="End" Title="End" Width="180px" />
+                                            <RadzenDataGridColumn TItem="AggregateTableItem" Property="Value" Title="Value" />
+                                        </Columns>
+                                    </RadzenDataGrid>
+                                </div>
                             </div>
                         </RadzenSplitterPane>
                     </RadzenSplitter>
@@ -185,7 +195,7 @@
 
     private DateTime from;
     private DateTime to;
-    private int take = 5000;
+    private int take = 50000;
 
     private bool? resultSuccess;
     private string resultMessage;
@@ -241,16 +251,16 @@
         Days
     }
 
-    class ValueTableItem
+    struct ValueTableItem
     {
-        public string SensorName { get; set; }
+        // public string SensorName { get; set; }
         public double Value { get; set; }
         public DateTime Timestamp { get; set; }
     }
 
-    class AggregateTableItem
+    struct AggregateTableItem
     {
-        public string SensorName { get; set; }
+        // public string SensorName { get; set; }
         public double Value { get; set; }
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
@@ -317,6 +327,7 @@
             sharcModel = null;
             sensorModel = null;
             sensorNames = null;
+
             valueTableItems = null;
             aggregateTableItems = null;
 
@@ -338,6 +349,8 @@
             sensorNames = await Client.Api.QueryJson<IEnumerable<string>>($"sharc/api/{SharcId}/io");
             if (!sensorNames.IsNullOrEmpty())
             {
+                sensorNames = sensorNames?.OrderBy(o => o);
+
                 if (!string.IsNullOrEmpty(selectedSensorName))
                 {
                     sensorModel = await Client.Api.QueryJson<SharcSensorInformation>($"sharc/api/{SharcId}/io/{selectedSensorName}");
@@ -389,9 +402,10 @@
             foreach (var value in values.OrderByDescending(o => o.Timestamp))
             {
                 var valueItem = new ValueTableItem();
-                valueItem.SensorName = selectedSensorName;
+                // valueItem.SensorName = selectedSensorName;
                 valueItem.Value = value.Value;
-                valueItem.Timestamp = value.Timestamp.ToUniversalTime(); // Convert to UTC
+                valueItem.Timestamp = value.Timestamp;
+                //valueItem.Timestamp = value.Timestamp.ToUniversalTime(); // Convert to UTC
                 valueItems.Add(valueItem);
             }
 
@@ -426,10 +440,12 @@
             foreach (var value in values.OrderByDescending(o => o.End))
             {
                 var valueItem = new AggregateTableItem();
-                valueItem.SensorName = selectedSensorName;
+                // valueItem.SensorName = selectedSensorName;
                 valueItem.Value = value.Value;
-                valueItem.Start = value.Start.ToUniversalTime(); // Convert to UTC
-                valueItem.End = value.End.ToUniversalTime(); // Convert to UTC
+                valueItem.Start = value.Start;
+                valueItem.End = value.End;
+                //valueItem.Start = value.Start.ToUniversalTime(); // Convert to UTC
+                //valueItem.End = value.End.ToUniversalTime(); // Convert to UTC
                 valueItems.Add(valueItem);
             }
 
@@ -568,6 +584,54 @@
         }
 
         return TimeSpan.FromHours(1);
+    }
+
+    private string GetApiLink()
+    {
+        switch (selectedQueryType)
+        {
+            case QueryType.Raw:
+
+                return GetUrl($"sharc/api/{SharcId}/io/{selectedSensorName}/values?from={from.ToUnixTime()}&to={to.ToUnixTime()}");
+
+            case QueryType.Aggregate:
+
+                return GetUrl($"sharc/api/{SharcId}/io/{selectedSensorName}/aggregate?from={from.ToUnixTime()}&to={to.ToUnixTime()}&aggregateType={selectedAggregateType}&aggregateWindow={GetWindow(selectedAggregateWindow, selectedAggregateWindowUnits)}");
+        }
+
+        return null;
+    }
+
+    private string GetDownloadExcelLink()
+    {
+        switch (selectedQueryType)
+        {
+            case QueryType.Raw:
+
+                return GetUrl($"sharc/api/{SharcId}/io/{selectedSensorName}/values/excel?from={from.ToUnixTime()}&to={to.ToUnixTime()}");
+
+            case QueryType.Aggregate:
+
+                return GetUrl($"sharc/api/{SharcId}/io/{selectedSensorName}/aggregate/excel?from={from.ToUnixTime()}&to={to.ToUnixTime()}&aggregateType={selectedAggregateType}&aggregateWindow={GetWindow(selectedAggregateWindow, selectedAggregateWindowUnits)}");
+        }
+
+        return null;
+    }
+
+    private string GetDownloadCsvLink()
+    {
+        switch (selectedQueryType)
+        {
+            case QueryType.Raw:
+
+                return GetUrl($"sharc/api/{SharcId}/io/{selectedSensorName}/values/csv?from={from.ToUnixTime()}&to={to.ToUnixTime()}");
+
+            case QueryType.Aggregate:
+
+                return GetUrl($"sharc/api/{SharcId}/io/{selectedSensorName}/aggregate/csv?from={from.ToUnixTime()}&to={to.ToUnixTime()}&aggregateType={selectedAggregateType}&aggregateWindow={GetWindow(selectedAggregateWindow, selectedAggregateWindowUnits)}");
+        }
+
+        return null;
     }
 
 }

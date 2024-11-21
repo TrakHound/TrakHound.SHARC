@@ -1,4 +1,5 @@
 ﻿@page "/sensors/{sharcId}/live"
+@implements IAsyncDisposable
 @inherits TrakHoundComponentBase
 @layout Layout
 @using TrakHound.Requests
@@ -18,29 +19,29 @@
     </div>
     <div class="page-content">
 
-        <div class="toolbar-panel">
-            <div class="toolbar-container">
-                <RadzenDropDown TValue="string" Data="@sensorNames" @bind-Value="@selectedSensorName" Placeholder="Select Sensor.." />
-            </div>
-            <div class="toolbar-container">
-
-                @if (!loading && consumer == null)
-                {
-                    <button class="btn btn-primary btn-query" @onclick="Subscribe"><span class="icon fa-solid fa-sharp fa-magnifying-glass"></span>Subscribe</button>
-                }
-                else
-                {
-                    <button class="btn btn-light btn-query" @onclick="Unsubscribe"><span class="icon fa-solid fa-pause"></span>Unsubscribe</button>
-                    <div class="listening">
-                        <ListeningIndicator />
-                    </div>
-                }
-
-            </div>
-        </div>
-
         @if (!loading)
         {
+            <div class="toolbar-panel">
+                <div class="toolbar-container">
+                    <RadzenDropDown TValue="string" Data="@sensorNames" Value="@selectedSensorName" ValueChanged="SelectedSensorChanged" Placeholder="Select Sensor.." />
+                </div>
+                <div class="toolbar-container">
+
+                    @if (consumer == null)
+                    {
+                        <button class="btn btn-primary btn-query" @onclick="Subscribe"><span class="icon fa-solid fa-sharp fa-magnifying-glass"></span>Subscribe</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-light btn-query" @onclick="Unsubscribe"><span class="icon fa-solid fa-pause"></span>Unsubscribe</button>
+                        <div class="listening">
+                            <ListeningIndicator />
+                        </div>
+                    }
+
+                </div>
+            </div>
+
             @if (resultSuccess != null)
             {
                 var resultIcon = resultSuccess.Value ? "fa-solid fa-sharp fa-check" : "fa-solid fa-sharp fa-circle-xmark";
@@ -54,52 +55,62 @@
                 if (resultSuccess.Value)
                 {
                     var items = bufferItems.Get()?.ToList().Take(bufferIndex);
-                    if (!items.IsNullOrEmpty())
-                    {
-                        //var chartItems = items.Reverse();
-                        var chartItems = GetChartItems(items);
-                        var tableItems = items.OrderByDescending(o => o.Timestamp);
 
-                        <div class="content-panel">
-                            <RadzenSplitter Orientation="Orientation.Vertical">
-                                <RadzenSplitterPane Min="100px">
-                                    <div class="chart-panel">
-                                        <RadzenChart>
-                                            <RadzenLineSeries Data="@chartItems" CategoryProperty="Timestamp" Title="@selectedSensorName" ValueProperty="Value" Stroke="var(--accentLight)" StrokeWidth="3" />
-                                             <RadzenLegend Visible="false" />
-                                            <RadzenCategoryAxis Formatter="@GetCategoryAxisLabel" Min="@from" Max="@to" Step="@GetCategoryAxisStep()">
-                                                <RadzenGridLines Visible="true" />
-                                            </RadzenCategoryAxis>
-                                            <RadzenValueAxis Formatter="@GetValueAxisLabel" Min="@min" Max="@max"  >
+                    //var chartItems = items.Reverse();
+                    var chartItems = GetChartItems(items);
+                    var tableItems = items?.OrderByDescending(o => o.Timestamp);
+
+                    <div class="content-panel">
+                        <RadzenSplitter Orientation="Orientation.Vertical">
+                            <RadzenSplitterPane Min="100px">
+                                <div class="chart-panel">
+                                    <RadzenChart>
+                                        <RadzenLineSeries Data="@chartItems" CategoryProperty="Timestamp" Title="@selectedSensorName" ValueProperty="Value" Stroke="var(--accentLight)" StrokeWidth="3" />
+                                            <RadzenLegend Visible="false" />
+                                        <RadzenCategoryAxis Formatter="@GetCategoryAxisLabel" Min="@from" Max="@to" Step="@GetCategoryAxisStep()">
+                                            <RadzenGridLines Visible="true" />
+                                        </RadzenCategoryAxis>
+
+                                        @if (valueRangeSet)
+                                        {
+                                            <RadzenValueAxis Formatter="@GetValueAxisLabel" Min="@min" Max="@max" Step="@GetValueAxisStep()">
                                                 <RadzenGridLines Visible="true" />
                                                 <RadzenAxisTitle Text="@sensorModel?.Units" />
                                             </RadzenValueAxis>
-                                        </RadzenChart>
-                                    </div>
-                                </RadzenSplitterPane>
-                                <RadzenSplitterPane Min="100px">
-                                    <div class="table-panel">
-                                        <RadzenDataGrid Data="@tableItems"
-                                                        TItem="ValueItem"
-                                                        Density="Density.Compact"
-                                                        AllowVirtualization="true"
-                                                        GridLines="DataGridGridLines.Vertical">
-                                            <Columns>
-                                                <RadzenDataGridColumn TItem="ValueItem" Property="SensorName" Title="SensorName" Width="100px" />
-                                                <RadzenDataGridColumn TItem="ValueItem" Property="Timestamp" Title="Timestamp" Width="180px" />
-                                                <RadzenDataGridColumn TItem="ValueItem" Title="Offset" Width="180px">
-                                                    <Template Context="context">
-                                                        <span>@GetOffsetDebug(context.Timestamp)</span>
-                                                    </Template>
-                                                </RadzenDataGridColumn>
-                                                <RadzenDataGridColumn TItem="ValueItem" Property="Value" Title="Value" />
-                                            </Columns>
-                                        </RadzenDataGrid>
-                                    </div>
-                                </RadzenSplitterPane>
-                            </RadzenSplitter>
-                        </div>
-                    }
+                                        }
+                                        else
+                                        {
+                                            <RadzenValueAxis Formatter="@GetValueAxisLabel">
+                                                <RadzenGridLines Visible="true" />
+                                                <RadzenAxisTitle Text="@sensorModel?.Units" />
+                                            </RadzenValueAxis>                                           
+                                        }
+
+                                    </RadzenChart>
+                                </div>
+                            </RadzenSplitterPane>
+                            <RadzenSplitterPane Min="100px">
+                                <div class="table-panel">
+                                    <RadzenDataGrid Data="@tableItems"
+                                                    TItem="ValueItem"
+                                                    Density="Density.Compact"
+                                                    AllowVirtualization="true"
+                                                    GridLines="DataGridGridLines.Vertical">
+                                        <Columns>
+                                            <RadzenDataGridColumn TItem="ValueItem" Property="SensorName" Title="SensorName" Width="100px" />
+                                            <RadzenDataGridColumn TItem="ValueItem" Property="Timestamp" Title="Timestamp" Width="180px" />
+                                            <RadzenDataGridColumn TItem="ValueItem" Title="Offset" Width="180px">
+                                                <Template Context="context">
+                                                    <span>@GetOffsetDebug(context.Timestamp)</span>
+                                                </Template>
+                                            </RadzenDataGridColumn>
+                                            <RadzenDataGridColumn TItem="ValueItem" Property="Value" Title="Value" />
+                                        </Columns>
+                                    </RadzenDataGrid>
+                                </div>
+                            </RadzenSplitterPane>
+                        </RadzenSplitter>
+                    </div>
                 }
             }
         }
@@ -128,7 +139,8 @@
     private DateTime to;
     private double max = double.MinValue;
     private double min = double.MaxValue;
-    private TimeSpan window = TimeSpan.FromSeconds(60);
+    private bool valueRangeSet = false;
+    private TimeSpan window = TimeSpan.FromSeconds(30);
     private TimeSpan interval = TimeSpan.FromMilliseconds(50);
 
     private CircularBuffer<ValueItem> bufferItems = new CircularBuffer<ValueItem>(bufferSize);
@@ -181,6 +193,11 @@
         await Load();
     }
 
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        await Unsubscribe();
+    }
+
     private async void QueryClicked()
     {
         await Load(true);
@@ -191,7 +208,6 @@
         if (forceLoad || !loaded)
         {
             sharcModel = null;
-            sensorModel = null;
             sensorNames = null;
 
             resultSuccess = null;
@@ -205,6 +221,7 @@
             sharcModel = await Client.Api.QueryJson<TrakHoundSharcModel>($"sharc/api/{SharcId}");
 
             sensorNames = await Client.Api.QueryJson<IEnumerable<string>>($"sharc/api/{SharcId}/io");
+            sensorNames = sensorNames?.OrderBy(o => o);
 
             loading = false;
             loadingMessage = null;
@@ -246,15 +263,30 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private async void SelectedSensorChanged(string sensorName)
+    {
+        selectedSensorName = sensorName;
+        sensorModel = null;
+
+        bufferIndex = 0;
+        bufferItems.Clear();
+
+        valueRangeSet = false;
+        max = double.MinValue;
+        min = double.MaxValue;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
     private void ValueReceived(object sender, ValueModel model)
     {
         var item = new ValueItem();
         item.SensorName = selectedSensorName;
         item.Value = model.Value;
         item.Timestamp = model.Timestamp;
-        // item.Timestamp = DateTime.Now;
         bufferItems.Add(item);
 
+        valueRangeSet = true;
         if (model.Value > max) max = model.Value + (model.Value * 0.1);
         if (model.Value < min) min = model.Value - (model.Value * 0.1);
 
@@ -272,46 +304,45 @@
 
     private ValueItem[] GetChartItems(IEnumerable<ValueItem> items)
     {
-        double lastValue = 0;
-
-        var a = items.Reverse().ToArray();
-        var chartItems = new ValueItem[a.Length * 2];
-
-        var x = 0;
-        for (var i = 0; i < a.Length; i++)
+        if (!items.IsNullOrEmpty())
         {
-            var firstItem = new ValueItem();
-            firstItem.Value = a[i].Value;
-            firstItem.Timestamp = a[i].Timestamp;
-            chartItems[x] = firstItem;
-            lastValue = firstItem.Value;
-            x++;
+            double lastValue = 0;
 
-            if (i < a.Length - 1)
+            var a = items.Reverse().ToArray();
+            var chartItems = new ValueItem[a.Length * 2];
+
+            var x = 0;
+            for (var i = 0; i < a.Length; i++)
             {
-                var secondItem = new ValueItem();
-                secondItem.Value = a[i].Value;
-                secondItem.Timestamp = a[i + 1].Timestamp;
-                chartItems[x] = secondItem;
+                var firstItem = new ValueItem();
+                firstItem.Value = a[i].Value;
+                firstItem.Timestamp = a[i].Timestamp;
+                chartItems[x] = firstItem;
+                lastValue = firstItem.Value;
                 x++;
+
+                if (i < a.Length - 1)
+                {
+                    var secondItem = new ValueItem();
+                    secondItem.Value = a[i].Value;
+                    secondItem.Timestamp = a[i + 1].Timestamp;
+                    chartItems[x] = secondItem;
+                    x++;
+                }
+                else
+                {
+                    var secondItem = new ValueItem();
+                    secondItem.Value = a[i].Value;
+                    secondItem.Timestamp = to;
+                    chartItems[x] = secondItem;
+                    x++;
+                }
             }
-            else
-            {
-                var secondItem = new ValueItem();
-                secondItem.Value = a[i].Value;
-                secondItem.Timestamp = to;
-                chartItems[x] = secondItem;
-                x++;
-            }
+
+            return chartItems;
         }
 
-        // var lastItem = new ValueItem();
-        // lastItem.Value = lastValue;
-        // lastItem.Timestamp = to;
-        // chartItems[x] = lastItem;
-        // x++;
-
-        return chartItems;
+        return null;
     }
 
 
@@ -323,8 +354,19 @@
 
     private string GetValueAxisLabel(object value)
     {
-        return value.ToString();
-        // return ((double)value).ToString("N2");
+        return ((double)value).ToString("N2");
+    }
+
+    private object GetValueAxisStep()
+    {
+        if (valueRangeSet)
+        {
+            return (max - min) / 6;
+        }
+        else
+        {
+            return 1;
+        }
     }
 
     private string GetCategoryAxisLabel(object value)
@@ -349,7 +391,6 @@
     private string GetOffset(DateTime timestamp)
     {
         return $"-{(to - timestamp).ToString("mm\\:ss")}";
-        // return $"-{(to - timestamp).ToString("ss\\.ff")}";
     }
 
     private string GetOffsetDebug(DateTime timestamp)

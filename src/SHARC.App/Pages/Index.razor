@@ -15,18 +15,6 @@
         </BreadcrumbLinks>
     </div>
 
-@*     <div class="breadcrumb-panel">
-        <BreadcrumbLinks>
-            <BreadcrumbLink Display="Configuration" Link="@GetPath("/")"></BreadcrumbLink>
-            <BreadcrumbLink Display="Sensors"></BreadcrumbLink>
-        </BreadcrumbLinks>
-    </div> *@
-
-@*     <div class="nav-panel tab-buttons">
-        <div class="tab-button active"><span class="icon fa-solid fa-sharp fa-signal-bars"></span>Sensors</div>
-        <a href="@GetPath("configuration")" class="tab-button"><span class="icon fa-solid fa-sharp fa-gear"></span>Configuration</a>
-    </div> *@
-
     @if (!loading)
     {
         <div class="toolbar-panel">
@@ -72,57 +60,6 @@
             }
 
         </div>
-
-        <Modal Class="add-connection-modal" Visible="@addModalVisible">
-            <HeaderContent>
-                <span class="modal-header-icon fa-solid fa-regular fa-square-plus"></span>
-                <span class="modal-header-title">Add SHARC Sensor</span>
-            </HeaderContent>
-            <BodyContent>
-                <div class="modal-body-content">
-                    <div class="modal-section">
-                        <TextBox Title="Description" @bind-Value="@description" Size="Size.Small" />
-                    </div>
-                    <div class="modal-section">
-                        <TextBox Title="Address" @bind-Value="@address" Size="Size.Small" />
-                    </div>
-                    <div class="modal-section-columns modal-section">
-                        <div class="modal-section-column">
-                            <SpinEdit Title="Port" @bind-Value="@port" Size="Size.Small" />
-                        </div>
-                        <div class="modal-section-column">
-                            <TextBox Title="Device Name" @bind-Value="@deviceName" Size="Size.Small" />
-                        </div>
-                    </div>
-                    <div class="modal-section-columns modal-section">
-                        <div class="modal-section-column">
-                            <SpinEdit Title="Stream Interval" @bind-Value="@streamInterval" Size="Size.Small" Units="ms" />
-                        </div>
-                        <div class="modal-section-column">
-                            <SpinEdit Title="Stream Heartbeat" @bind-Value="@heartbeatInterval" Size="Size.Small" Units="ms" />
-                        </div>
-                    </div>
-                    <div class="modal-section">
-                        <TextBox Title="Device Name Override" @bind-Value="@deviceNameOverride" Size="Size.Small" />
-                        <TextBox Title="Device Base Path" @bind-Value="@deviceBasePath" Size="Size.Small" />
-                        <TextBox Title="Asset Base Path" @bind-Value="@assetBasePath" Size="Size.Small" />
-                    </div>
-                </div>
-            </BodyContent>
-            <FooterContent>
-
-                @if (!addModalLoading)
-                {
-                    <button class="btn btn-secondary" @onclick="ModalCancelClicked"><span class="icon fa-solid fa-sharp fa-xmark"></span>Cancel</button>
-                    <button class="btn btn-primary" @onclick="ModalAddClicked"><span class="icon fa-solid fa-sharp fa-plus"></span>Add</button>
-                }
-                else
-                {
-                    <button class="btn btn-primary disabled"><span class="icon fa-solid fa-sharp fa-loader"></span>Adding..</button>
-                }
-
-            </FooterContent>
-        </Modal>
 
         <Modal Class="delete-connection-modal" Visible="@deleteModalVisible">
             <HeaderContent>
@@ -267,36 +204,6 @@
         }
     }
 
-    private async void AddClicked()
-    {
-        addModalVisible = true;
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async void ModalAddClicked()
-    {
-        // if (!string.IsNullOrEmpty(address) && !string.IsNullOrEmpty(deviceName))
-        // {
-        //     addModalLoading = true;
-        //     await InvokeAsync(StateHasChanged);
-
-        //     var connection = new SharcSensorConfiguration();
-        //     connection.Id = $"c-{StringFunctions.RandomString(6).ToLower()}";
-        //     connection.Description.Description = description;
-        //     connection.Connection.Address = address;
-        //     connection.Connection.Port = port;
-        //     connection.Connection.Device = deviceName;
-        //     connection.Connection.StreamInterval = streamInterval;
-        //     connection.Connection.HeartbeatInterval = heartbeatInterval;
-        //     connection.DeviceBasePath = deviceBasePath;
-        //     connection.AssetBasePath = assetBasePath;
-
-        //     await Client.Entities.Publish(connection);
-
-        //     addModalVisible = false;
-        //     await Load(true);
-        // }
-    }
 
     private async void DeleteClicked(TableItem item)
     {

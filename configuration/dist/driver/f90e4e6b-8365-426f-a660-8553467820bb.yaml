@@ -1,0 +1,18 @@
+id: f90e4e6b-8365-426f-a660-8553467820bb
+name: memory-localhost
+description: 
+volumeId: 
+packageId: TrakHound.Memory.Drivers
+packageVersion: '*'
+parameters: {}
+buffer:
+  interval: 10
+  retryInterval: 1000
+  maxItemsPerInterval: 1000
+  queuedItemLimit: 100000
+  fileBufferEnabled: false
+  fileBufferForceEnabled: false
+  fileBufferPageSize: 0
+  fileBufferReadInterval: -1
+  fileBufferWriteInterval: -1
+  acknowledgeSent: false

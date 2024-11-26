@@ -27,6 +27,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{C5176772
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "configuration", "configuration", "{F22C1145-BF9F-4D81-A0DC-514D9F840376}"
+	ProjectSection(SolutionItems) = preProject
+		..\configuration\publish-package.bat = ..\configuration\publish-package.bat
+		..\configuration\trakhound.package.json = ..\configuration\trakhound.package.json
+		..\configuration\trakhound.package.publish.json = ..\configuration\trakhound.package.publish.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

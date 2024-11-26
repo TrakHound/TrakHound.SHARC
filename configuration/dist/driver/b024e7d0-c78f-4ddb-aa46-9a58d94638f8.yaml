@@ -1,0 +1,18 @@
+id: b024e7d0-c78f-4ddb-aa46-9a58d94638f8
+name: sqlite
+description: 
+volumeId: 
+packageId: TrakHound.Sqlite.Drivers
+packageVersion: '*'
+parameters: {}
+buffer:
+  interval: 5000
+  retryInterval: 10000
+  maxItemsPerInterval: 1000
+  queuedItemLimit: 100000
+  fileBufferEnabled: false
+  fileBufferForceEnabled: false
+  fileBufferPageSize: 0
+  fileBufferReadInterval: -1
+  fileBufferWriteInterval: -1
+  acknowledgeSent: false

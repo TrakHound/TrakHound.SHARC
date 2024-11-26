@@ -70,3 +70,10 @@ Query Aggregate sensor values using the **Aggregate** query type. This displays 
 ### View Live Values
 ![IMAGE](https://raw.githubusercontent.com/TrakHound/TrakHound.SHARC/refs/heads/main/img/Screenshot%202024-11-21%20141102.png)
 
+## Storage
+Data values are stored using TrakHound Observations and will require a Driver that supports it. See below for example:
+
+### InfluxDB
+- Install & Setup InfluxDB : https://www.influxdata.com
+- Install & Configure **TrakHound.InfluxDB.Drivers** using TrakHound Admin UI
+

@@ -8,6 +8,18 @@
   },
   "dependencies": [
     {
+      "id": "TrakHound.Entities.Api",
+      "version": "*"
+    },
+    {
+      "id": "TrakHound.Sqlite.Drivers",
+      "version": "*"
+    },
+    {
+      "id": "TrakHound.Sqlite.TimeSeries.Drivers",
+      "version": "*"
+    },
+    {
       "id": "SHARC.App",
       "version": "*"
     },

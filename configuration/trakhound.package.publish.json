@@ -1,0 +1,9 @@
+{
+  "version": "0.1.1",
+  "destinations": [
+    {
+      "managementServer": "https://www.trakhound.com/management",
+      "organization": "TrakHound"
+    }
+  ]
+}

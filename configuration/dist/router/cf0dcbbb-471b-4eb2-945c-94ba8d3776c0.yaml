@@ -1,0 +1,35 @@
+id: cf0dcbbb-471b-4eb2-945c-94ba8d3776c0
+name: cache
+description: 
+routes:
+- id: 738da9ee-ed77-4c61-a661-7dcbfaed2a19
+  patterns:
+  - Read
+  filters: 
+  targets:
+  - id: e8fbf0c6-bbb0-4ede-839f-5cf6dd0b3a2d
+    source: f90e4e6b-8365-426f-a660-8553467820bb
+    type: Driver
+    redirects:
+    - id: 645d881d-8474-4b39-805b-c5394bfda4f7
+      conditions:
+      - NotFound
+      - RouteNotConfigured
+      - NotAvailable
+      targets:
+      - id: 653b19ec-04e3-4b8f-9cdd-fd2d7ee086a2
+        source: 8d2ed971-7db9-43ce-a0d8-a2090eb3172e
+        type: Router
+        redirects: 
+      options:
+      - Publish
+      - Empty
+- id: 00511209-8d03-4849-ac5c-8fb9d576ba50
+  patterns:
+  - Write
+  filters: 
+  targets:
+  - id: 4bea172e-4df1-4af0-90d0-710a40087f9f
+    source: f90e4e6b-8365-426f-a660-8553467820bb
+    type: Driver
+    redirects: 

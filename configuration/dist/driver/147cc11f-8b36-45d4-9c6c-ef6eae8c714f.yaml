@@ -1,0 +1,18 @@
+id: 147cc11f-8b36-45d4-9c6c-ef6eae8c714f
+name: local-filesystem
+description: 
+volumeId: 
+packageId: TrakHound.FileSystem.Drivers
+packageVersion: '*'
+parameters: {}
+buffer:
+  interval: 5000
+  retryInterval: 10000
+  maxItemsPerInterval: 5000
+  queuedItemLimit: 100000
+  fileBufferEnabled: false
+  fileBufferForceEnabled: false
+  fileBufferPageSize: 0
+  fileBufferReadInterval: -1
+  fileBufferWriteInterval: -1
+  acknowledgeSent: false

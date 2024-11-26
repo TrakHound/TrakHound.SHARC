@@ -1,0 +1,18 @@
+id: 55ed416b-5118-4ad6-a5d0-1ac568ac720e
+name: sqlite-timeseries
+description: 
+volumeId: 
+packageId: TrakHound.Sqlite.TimeSeries.Drivers
+packageVersion: '*'
+parameters: {}
+buffer:
+  interval: 5000
+  retryInterval: 10000
+  maxItemsPerInterval: 1000
+  queuedItemLimit: 100000
+  fileBufferEnabled: false
+  fileBufferForceEnabled: false
+  fileBufferPageSize: 0
+  fileBufferReadInterval: -1
+  fileBufferWriteInterval: -1
+  acknowledgeSent: false

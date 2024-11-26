@@ -1,0 +1,21 @@
+id: 8d2ed971-7db9-43ce-a0d8-a2090eb3172e
+name: storage
+description: 
+routes:
+- id: 9d90eeb9-8db7-4b77-91da-7032f81228c4
+  patterns:
+  - '*'
+  filters: 
+  targets:
+  - id: 18c4e930-92cd-40bd-85c2-644838dd70c1
+    source: 147cc11f-8b36-45d4-9c6c-ef6eae8c714f
+    type: Driver
+    redirects: 
+  - id: 9b045cc2-afb5-49f1-b3c7-c5d900cbbf61
+    source: 55ed416b-5118-4ad6-a5d0-1ac568ac720e
+    type: Driver
+    redirects: 
+  - id: a2773ecd-7428-4658-ac4b-210f0c950e84
+    source: b024e7d0-c78f-4ddb-aa46-9a58d94638f8
+    type: Driver
+    redirects: 

@@ -1,0 +1,26 @@
+id: fe693ee5-8def-4f9f-b9d3-8cf840312848
+name: default
+description: 
+routes:
+- id: fa381a65-a830-40ea-9326-47b1f23b1058
+  patterns:
+  - Read
+  filters: 
+  targets:
+  - id: 58e555f6-e971-46fd-b90c-aa29db1232c8
+    source: cf0dcbbb-471b-4eb2-945c-94ba8d3776c0
+    type: Router
+    redirects: 
+- id: 8cca3d28-0623-4c77-ab53-d8582761773b
+  patterns:
+  - Write
+  filters: 
+  targets:
+  - id: 9d3ef3e9-10d7-49cf-95fd-8db7eae9b2f8
+    source: cf0dcbbb-471b-4eb2-945c-94ba8d3776c0
+    type: Router
+    redirects: 
+  - id: 31047572-a46a-4c16-a94e-c9c55a15413d
+    source: 8d2ed971-7db9-43ce-a0d8-a2090eb3172e
+    type: Router
+    redirects: 

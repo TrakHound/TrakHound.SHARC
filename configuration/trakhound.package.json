@@ -1,0 +1,9 @@
+﻿{
+  "id": "SHARC.Default.Configuration",
+  "category": "configuration",
+  "metadata": {
+    "publisher": "TrakHound Inc.",
+    "description": "Use the default SHARC configuration",
+    ".image": "https://www.trakhound.com/management/static/sharc-logo"
+  }
+}
